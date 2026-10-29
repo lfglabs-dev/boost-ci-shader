@@ -7,9 +7,9 @@
 //     * 1.0 = Small / Favicon Bold Variant (178px ring, 70px anti-bleed gap)
 // - Adaptive Dark-Theme Support via `u_dark_mode` (adapts dark gray/black
 //   needle & track into refined brushed light metallic gray)
-// - 4.4s Single-Shot Tachometer Choreography & Semantic Color Evolution:
-//     Green-Lime start -> Boost Orange-Gold -> Vivid Scarlet Red struggle
-//     -> cools back to Orange-Gold, sweeps highlight, and stops cleanly!
+// - 5.2s Single-Shot Tachometer Choreography & Semantic Color Evolution:
+//     Extended Green-Lime -> Chartreuse / Sunburst Yellow -> Boost Orange-Gold
+//     -> Vivid Scarlet Red struggle -> cools back to Orange-Gold & stops!
 // - Define SHADERTOY when pasting into Shadertoy.com.
 // ============================================================================
 
@@ -21,7 +21,7 @@ precision highp float;
 uniform vec2  u_resolution;
 uniform float u_time;
 uniform float u_progress;    // [0..1.12] manual gauge boost (-1.0 = exact static orange ref)
-uniform float u_animate;     // 1.0 = 4.4s single-shot boost to orange stop, 0.0 = manual
+uniform float u_animate;     // 1.0 = 5.2s single-shot boost to orange stop, 0.0 = manual
 uniform float u_speed;       // Animation speed multiplier (default 1.0)
 uniform float u_bg_alpha;    // 1.0 = solid background, 0.0 = transparent (premultiplied)
 uniform float u_variant;     // 0.0 = High-Resolution Display, 1.0 = Small / Favicon Bold
@@ -160,13 +160,15 @@ float easeInOut(float u) {
 }
 
 // ----------------------------------------------------------------------------
-// 4.4s Single-Shot Tachometer Kinematics (Green -> Orange -> Red -> Orange Stop)
+// 5.2s Single-Shot Tachometer Kinematics
+// (Extended Green -> Chartreuse/Yellow -> Boost Orange -> Vivid Red -> Orange Stop)
 // ----------------------------------------------------------------------------
 void getBoostKinematics(float time, float manualProgress, float animateFlag,
                         out float needleRotRad, out float shimmerX,
-                        out float sparkGlow, out float greenStart, out float redHeat) {
+                        out float sparkGlow, out float greenStart,
+                        out float yellowMid, out float redHeat) {
     const float START_DEG = -189.0;
-    const float DURATION  = 4.4;
+    const float DURATION  = 5.2;
 
     if (animateFlag < 0.5) {
         if (manualProgress < 0.0) {
@@ -174,6 +176,7 @@ void getBoostKinematics(float time, float manualProgress, float animateFlag,
             needleRotRad = 0.0;
             shimmerX     = -1000.0;
             greenStart   = 0.0;
+            yellowMid    = 0.0;
             redHeat      = 0.0;
             sparkGlow    = 0.0;
             return;
@@ -182,17 +185,19 @@ void getBoostKinematics(float time, float manualProgress, float animateFlag,
         float deg = (p <= 1.0) ? mix(START_DEG, 0.0, p) : (p - 1.0) * 166.15;
         needleRotRad = deg * DEG;
         shimmerX     = -1000.0;
-        greenStart   = 1.0 - smoothstep(0.20, 0.48, p);
-        redHeat      = smoothstep(0.58, 0.98, p);
+        greenStart   = 1.0 - smoothstep(0.24, 0.44, p);
+        yellowMid    = 1.0 - smoothstep(0.50, 0.68, p);
+        redHeat      = smoothstep(0.68, 0.98, p);
         sparkGlow    = redHeat * 0.70;
         return;
     }
 
-    // Single-shot clamp: once t >= 4.4s, stays parked cleanly at 0 deg Orange-Gold!
+    // Single-shot clamp: once t >= 5.2s, stays parked cleanly at 0 deg Orange-Gold!
     if (time >= DURATION) {
         needleRotRad = 0.0;
         shimmerX     = -1000.0;
         greenStart   = 0.0;
+        yellowMid    = 0.0;
         redHeat      = 0.0;
         sparkGlow    = 0.0;
         return;
@@ -203,95 +208,101 @@ void getBoostKinematics(float time, float manualProgress, float animateFlag,
     shimmerX   = -1000.0;
     sparkGlow  = 0.0;
     greenStart = 0.0;
+    yellowMid  = 0.0;
     redHeat    = 0.0;
     float tremorAmp = 0.0;
 
-    if (c < 0.050) {
-        // 1a. Quick idle throttle blip (Green-Lime start)
-        float u = c / 0.050;
-        deg = mix(-189.0, -165.0, easeOutPow(u, 2.4));
+    if (c < 0.055) {
+        // 1a. Quick idle throttle blip into an immediately visible green crescent
+        float u = c / 0.055;
+        deg = mix(-189.0, -150.0, easeOutPow(u, 2.4));
         greenStart = 1.00;
+        yellowMid  = 1.00;
         sparkGlow  = u * 0.22;
-        tremorAmp  = 0.35;
-    } else if (c < 0.100) {
-        // 1b. Blip settle before launch (Green-Lime)
-        float u = (c - 0.050) / 0.050;
-        deg = mix(-165.0, -182.0, easeInOut(u));
+        tremorAmp  = 0.32;
+    } else if (c < 0.105) {
+        // 1b. Blip settle in Emerald-Lime Green
+        float u = (c - 0.055) / 0.050;
+        deg = mix(-150.0, -166.0, easeInOut(u));
         greenStart = 1.00;
+        yellowMid  = 1.00;
         sparkGlow  = (1.0 - u) * 0.18;
-        tremorAmp  = 0.25;
-    } else if (c < 0.220) {
-        // 2a. 1st Gear brisk launch (Green warming toward chartreuse-gold)
-        float u = (c - 0.100) / 0.120;
-        deg = mix(-182.0, -104.0, easeOutPow(u, 2.1));
-        greenStart = mix(1.00, 0.72, smoothstep(0.35, 1.0, u));
-        sparkGlow  = 0.30 + 0.30 * sin(u * PI);
-        tremorAmp  = 0.30 * u;
-    } else if (c < 0.265) {
-        // 2b. Clutch-in 1->2 upshift RPM drop
-        float u = (c - 0.220) / 0.045;
-        deg = mix(-104.0, -120.0, easeInOut(u));
-        greenStart = mix(0.72, 0.55, easeInOut(u));
+        tremorAmp  = 0.22;
+    } else if (c < 0.250) {
+        // 2a. Generous 1st Gear pull in Emerald-Lime Green
+        float u = (c - 0.105) / 0.145;
+        deg = mix(-166.0, -98.0, easeOutPow(u, 2.0));
+        greenStart = mix(1.00, 0.78, smoothstep(0.60, 1.0, u));
+        yellowMid  = 1.00;
+        sparkGlow  = 0.26 + 0.24 * sin(u * PI);
+        tremorAmp  = 0.28 * u;
+    } else if (c < 0.300) {
+        // 2b. Clutch-in 1->2 upshift RPM drop in fresh Lime-Chartreuse
+        float u = (c - 0.250) / 0.050;
+        deg = mix(-98.0, -112.0, easeInOut(u));
+        greenStart = mix(0.78, 0.52, easeInOut(u));
+        yellowMid  = 1.00;
         sparkGlow  = 0.18;
-    } else if (c < 0.400) {
-        // 3a. 2nd Gear pull: transitions out of Green into pure Boost Gold-Orange!
-        float u = (c - 0.265) / 0.135;
-        deg = mix(-120.0, -46.0, easeOutPow(u, 2.3));
-        greenStart = mix(0.55, 0.0, smoothstep(0.0, 0.92, u));
-        redHeat    = smoothstep(0.70, 1.0, u) * 0.12;
-        sparkGlow  = 0.42 + 0.32 * u;
-        tremorAmp  = 0.45 * u;
-    } else if (c < 0.445) {
-        // 3b. Clutch-in 2->3 upshift RPM drop
-        float u = (c - 0.400) / 0.045;
-        deg = mix(-46.0, -61.0, easeInOut(u));
-        redHeat   = mix(0.12, 0.05, easeInOut(u));
+    } else if (c < 0.470) {
+        // 3a. Long 2nd Gear sweep across the crown: Chartreuse -> Sunburst Yellow!
+        float u = (c - 0.300) / 0.170;
+        deg = mix(-112.0, -50.0, easeOutPow(u, 2.1));
+        greenStart = mix(0.52, 0.0, smoothstep(0.0, 0.65, u));
+        yellowMid  = 1.00;
+        sparkGlow  = 0.34 + 0.26 * u;
+        tremorAmp  = 0.36 * u;
+    } else if (c < 0.525) {
+        // 3b. Clutch-in 2->3 upshift RPM drop in warm Golden-Yellow
+        float u = (c - 0.470) / 0.055;
+        deg = mix(-50.0, -64.0, easeInOut(u));
+        yellowMid = mix(1.00, 0.78, easeInOut(u));
         sparkGlow = 0.22;
-    } else if (c < 0.570) {
-        // 4a. 3rd Gear pull — wind drag thickens & heats into vivid scarlet!
-        float u = (c - 0.445) / 0.125;
-        deg = mix(-61.0, -21.0, easeOutPow(u, 2.6));
-        redHeat   = mix(0.05, 0.48, easeInOut(u));
-        sparkGlow = mix(0.45, 0.78, u);
-        tremorAmp = mix(0.35, 0.85, u);
-    } else if (c < 0.615) {
+    } else if (c < 0.650) {
+        // 4a. 3rd Gear pull: Golden-Yellow -> Boost Orange -> first Vivid Red heat
+        float u = (c - 0.525) / 0.125;
+        deg = mix(-64.0, -21.0, easeOutPow(u, 2.5));
+        yellowMid = mix(0.78, 0.0, smoothstep(0.0, 0.64, u));
+        redHeat   = smoothstep(0.52, 1.0, u) * 0.45;
+        sparkGlow = mix(0.42, 0.78, u);
+        tremorAmp = mix(0.32, 0.85, u);
+    } else if (c < 0.690) {
         // 4b. High-load struggle — straining surge 1
-        float u = (c - 0.570) / 0.045;
+        float u = (c - 0.650) / 0.040;
         deg = mix(-21.0, -14.5, easeInOut(u));
-        redHeat   = mix(0.48, 0.68, easeInOut(u));
+        redHeat   = mix(0.45, 0.68, easeInOut(u));
         sparkGlow = 0.84;
         tremorAmp = 0.95;
-    } else if (c < 0.645) {
+    } else if (c < 0.720) {
         // 4c. Momentary boost hesitation / load dip 1
-        float u = (c - 0.615) / 0.030;
+        float u = (c - 0.690) / 0.030;
         deg = mix(-14.5, -17.2, easeInOut(u));
         redHeat   = mix(0.68, 0.55, easeInOut(u));
         sparkGlow = 0.65;
         tremorAmp = 0.80;
-    } else if (c < 0.700) {
+    } else if (c < 0.770) {
         // 4d. Fighting harder against load — surge 2 (bright scarlet!)
-        float u = (c - 0.645) / 0.055;
+        float u = (c - 0.720) / 0.050;
         deg = mix(-17.2, -6.8, easeOutPow(u, 1.9));
         redHeat   = mix(0.55, 0.86, easeInOut(u));
         sparkGlow = 0.94;
         tremorAmp = 1.15;
-    } else if (c < 0.730) {
+    } else if (c < 0.795) {
         // 4e. Second slight load falter right before redline
-        float u = (c - 0.700) / 0.030;
+        float u = (c - 0.770) / 0.025;
         deg = mix(-6.8, -9.0, easeInOut(u));
         redHeat   = mix(0.86, 0.74, easeInOut(u));
         sparkGlow = 0.78;
         tremorAmp = 1.00;
-    } else if (c < 0.780) {
+    } else if (c < 0.840) {
         // 4f. Final full-boost push punching to +2.6 deg — VIVID REDLINE!
-        float u = (c - 0.730) / 0.050;
+        float u = (c - 0.795) / 0.045;
         deg = mix(-9.0, 2.6, easeOutPow(u, 1.8));
         redHeat   = mix(0.74, 1.00, easeOutPow(u, 1.6));
         sparkGlow = 1.00;
         tremorAmp = 1.25;
-    } else if (c < 0.845) {
+    } else if (c < 0.890) {
         // 4g. Crisp rev-limiter bounce settling onto 0.0 deg
-        float u = (c - 0.780) / 0.065;
+        float u = (c - 0.840) / 0.050;
         deg = 2.6 * exp(-3.4 * u) * cos(u * PI * 3.0);
         redHeat   = 0.94 + 0.06 * sin(u * PI * 3.0);
         sparkGlow = mix(1.0, 0.52, u);
@@ -302,7 +313,7 @@ void getBoostKinematics(float time, float manualProgress, float animateFlag,
     } else {
         // 5. Settles at 0.0 deg, cools smoothly from Red to Boost Orange-Gold,
         //    sweeps the specular highlight, and stops cleanly!
-        float u = (c - 0.845) / 0.155;
+        float u = (c - 0.890) / 0.110;
         deg = 0.0;
         tremorAmp = 0.15 * max(0.0, 1.0 - u * 1.8);
         sparkGlow = 0.52 * max(0.0, 1.0 - u * 1.5);
@@ -317,10 +328,10 @@ void getBoostKinematics(float time, float manualProgress, float animateFlag,
 }
 
 // ----------------------------------------------------------------------------
-// Gauge Arc Shading: Green-Lime Start -> Boost Orange-Gold -> Vivid Scarlet Red
+// Gauge Arc Shading: Green -> Sunburst Yellow -> Boost Orange -> Vivid Scarlet Red
 // ----------------------------------------------------------------------------
 vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
-                 float greenStart, float redHeat, float time, bool isFav) {
+                 float greenStart, float yellowMid, float redHeat, float time, bool isFav) {
     vec2  gCenter = isFav ? vec2(615.0, 175.0) : vec2(620.0, 210.0);
     float gRadius = isFav ? 760.0 : 682.0;
     float d = clamp(length(p - gCenter) / gRadius, 0.0, 1.0);
@@ -357,7 +368,25 @@ vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
 
     vec3 col = orangeCol;
 
-    // 1. Fresh Green-Lime initial low-RPM state
+    // 1. Mid-Range Chartreuse / Sunburst Yellow stage (bridges Green -> Boost Orange cleanly)
+    if (yellowMid > 0.001) {
+        float dy = clamp(length(p - (isFav ? vec2(510.0, 245.0) : vec2(520.0, 270.0))) / (isFav ? 750.0 : 670.0), 0.0, 1.0);
+        vec3 y0 = isFav ? vec3(0.9255, 1.0000, 0.1882) : vec3(0.9020, 0.9804, 0.1647); // #E6FA2A / #ECFF30
+        vec3 y1 = isFav ? vec3(1.0000, 0.9255, 0.1255) : vec3(1.0000, 0.9098, 0.1098); // #FFE81C / #FFEC20
+        vec3 y2 = isFav ? vec3(1.0000, 0.8314, 0.0706) : vec3(1.0000, 0.8157, 0.0627); // #FFD010 / #FFD412
+        vec3 y3 = isFav ? vec3(1.0000, 0.7294, 0.0314) : vec3(1.0000, 0.7176, 0.0314); // #FFB708 / #FFBA08
+        vec3 y4 = vec3(0.9804, 0.6196, 0.0157);                                        // #FA9E04
+
+        vec3 yellowCol;
+        if      (dy < 0.26) yellowCol = mix(y0, y1, dy / 0.26);
+        else if (dy < 0.56) yellowCol = mix(y1, y2, (dy - 0.26) / 0.30);
+        else if (dy < 0.82) yellowCol = mix(y2, y3, (dy - 0.56) / 0.26);
+        else                yellowCol = mix(y3, y4, (dy - 0.82) / 0.18);
+
+        col = mix(col, yellowCol, clamp(yellowMid, 0.0, 1.0));
+    }
+
+    // 2. Fresh Green-Lime initial low-RPM state (layered above Yellow for pure Chartreuse blend)
     if (greenStart > 0.001) {
         float dg = clamp(length(p - (isFav ? vec2(410.0, 340.0) : vec2(430.0, 360.0))) / (isFav ? 740.0 : 660.0), 0.0, 1.0);
         vec3 g0 = vec3(0.7059, 0.9490, 0.1725); // #B4F22C
@@ -375,7 +404,7 @@ vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
         col = mix(col, greenCol, clamp(greenStart, 0.0, 1.0));
     }
 
-    // 2. Luminous Vivid Scarlet-Red high-load struggle state (less dark, vibrant tail)
+    // 3. Luminous Vivid Scarlet-Red high-load struggle state (less dark, vibrant tail)
     if (redHeat > 0.001) {
         float dr = clamp(length(p - (isFav ? vec2(780.0, 285.0) : vec2(760.0, 310.0))) / (isFav ? 760.0 : 690.0), 0.0, 1.0);
         vec3 r0 = vec3(1.0000, 0.3608, 0.1490); // #FF5C26 (0%)
@@ -393,7 +422,7 @@ vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
         col = mix(col, redCol, clamp(redHeat, 0.0, 1.0));
     }
 
-    // 3. Subtle incandescent heat right behind the straining needle tip
+    // 4. Subtle incandescent heat right behind the straining needle tip
     if (sparkGlow > 0.001) {
         float flicker = 0.86 + 0.14 * sin(time * 105.0);
         float edgeHeat = exp(-max(-distToCut, 0.0) * 0.034) * sparkGlow * flicker;
@@ -401,7 +430,7 @@ vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
         col = mix(col, sparkCol, clamp(edgeHeat * 0.62, 0.0, 0.75));
     }
 
-    // 4. Final left-to-right specular highlight sweep before parking
+    // 5. Final left-to-right specular highlight sweep before parking
     if (shimmerX > -500.0) {
         float diagX = p.x + (540.0 - p.y) * 0.22;
         float band  = exp(-pow((diagX - shimmerX) / 115.0, 2.0));
@@ -512,8 +541,8 @@ vec4 renderBoostCI(vec2 fragCoord, vec2 resolution, float time, float progress,
     float aa = 0.75 / max(scale, 1e-4);
     bool isFav = (variant > 0.5);
 
-    float needleRotRad, shimmerX, sparkGlow, greenStart, redHeat;
-    getBoostKinematics(time, progress, animateFlag, needleRotRad, shimmerX, sparkGlow, greenStart, redHeat);
+    float needleRotRad, shimmerX, sparkGlow, greenStart, yellowMid, redHeat;
+    getBoostKinematics(time, progress, animateFlag, needleRotRad, shimmerX, sparkGlow, greenStart, yellowMid, redHeat);
 
     vec2  piv = isFav ? vec2(512.0, 548.0) : vec2(512.5, 551.5);
     float cs  = cos(-needleRotRad);
@@ -556,7 +585,7 @@ vec4 renderBoostCI(vec2 fragCoord, vec2 resolution, float time, float progress,
 
     float aOrange = 1.0 - smoothstep(-aa, aa, dOrange);
     if (aOrange > 0.0) {
-        outPremul = blendOver(outPremul, shadeOrange(p, dCutOrange, shimmerX, sparkGlow, greenStart, redHeat, time, isFav), aOrange);
+        outPremul = blendOver(outPremul, shadeOrange(p, dCutOrange, shimmerX, sparkGlow, greenStart, yellowMid, redHeat, time, isFav), aOrange);
     }
 
     float aNeedle = 1.0 - smoothstep(-aa, aa, dNeedle);
