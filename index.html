@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boost-CI — Procedural GLSL Shader &amp; Adaptive Vector SVG Studio</title>
+  <link rel="icon" type="image/svg+xml" href="boost-ci-favicon.svg" />
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card: #131720;
+      --card-elev: #191e2b;
+      --border: #252c3d;
+      --text: #f2f5fa;
+      --muted: #8e97ad;
+      --accent: #fe8605;
+      --accent-gold: #fece2a;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #171c28 0%, var(--bg) 65%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 24px 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    header {
+      text-align: center;
+      max-width: 920px;
+    }
+    header h1 {
+      font-size: 1.7rem;
+      font-weight: 750;
+      letter-spacing: -0.025em;
+      background: linear-gradient(92deg, #32d654 0%, #fece2a 38%, #fe7e03 70%, #ff3814 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    header p {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 1080px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      color: var(--text);
+    }
+    .control-group label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 500;
+    }
+    .seg-switch {
+      display: inline-flex;
+      background: #0d1018;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      border-radius: 7px;
+      padding: 5px 11px;
+      font-size: 0.79rem;
+      font-weight: 620;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      white-space: nowrap;
+    }
+    .seg-btn.active {
+      background: rgba(254, 134, 5, 0.18);
+      color: var(--accent-gold);
+      box-shadow: inset 0 0 0 1px rgba(254, 150, 15, 0.45);
+    }
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      accent-color: var(--accent);
+      width: 125px;
+      cursor: pointer;
+    }
+    select {
+      background: var(--card-elev);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .readout {
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+      color: var(--accent-gold);
+      font-weight: 600;
+      font-size: 0.83rem;
+    }
+    .divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+    }
+    .btn {
+      background: linear-gradient(135deg, #fd5c02, #fea812);
+      color: #0b0d12;
+      font-weight: 650;
+      font-size: 0.81rem;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+    .btn:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: var(--card-elev);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 550;
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      filter: none;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1080px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 1080px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+    }
+    .panel-highlight {
+      border-color: rgba(254, 150, 15, 0.45);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      min-height: 26px;
+    }
+    .panel-title {
+      font-size: 0.86rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .badge {
+      font-size: 0.69rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(254, 134, 5, 0.13);
+      color: var(--accent-gold);
+      border: 1px solid rgba(254, 134, 5, 0.3);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-red {
+      background: rgba(255, 62, 24, 0.15);
+      color: #ff9a7b;
+      border-color: rgba(255, 62, 24, 0.36);
+    }
+    .viewport {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      transition: background-color 0.2s ease;
+    }
+    .viewport.bg-checker {
+      background-image:
+        linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+        linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+        linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      background-color: #ffffff;
+    }
+    .viewport.bg-soft {
+      background: #eef1f6;
+    }
+    .viewport.bg-dark {
+      background: #10141d;
+    }
+    .viewport > canvas,
+    .viewport > svg,
+    .viewport > img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+    .section-label {
+      width: 100%;
+      max-width: 1080px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px 4px 0;
+    }
+    .section-label h2 {
+      font-size: 1.02rem;
+      font-weight: 680;
+      letter-spacing: -0.015em;
+      color: var(--text);
+    }
+    .section-label span {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .optical-card {
+      width: 100%;
+      max-width: 1080px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+    }
+    .browser-tabs-demo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+    }
+    .mock-browser-bar {
+      background: #1b202d;
+      border: 1px solid #2b3347;
+      border-radius: 11px;
+      padding: 9px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .mock-bar-caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .mock-tabs-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mock-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.77rem;
+      font-weight: 560;
+    }
+    .mock-tab.light {
+      background: #ffffff;
+      color: #151922;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+    }
+    .mock-tab.dark {
+      background: #0d1017;
+      color: #e9eef9;
+      border: 1px solid #273044;
+    }
+    .mock-tab img, .mock-tab svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+    .matrix-table {
+      display: grid;
+      grid-template-columns: 195px 1fr;
+      gap: 12px 18px;
+      align-items: center;
+    }
+    @media (max-width: 720px) {
+      .matrix-table {
+        grid-template-columns: 1fr;
+      }
+    }
+    .matrix-row-label {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .matrix-row-label strong {
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    .matrix-row-label span {
+      font-size: 0.74rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .scale-icons {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .scale-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.71rem;
+      color: var(--muted);
+    }
+    .scale-pair {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scale-box {
+      background: #ffffff;
+      border-radius: 7px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+    }
+    .scale-box.dark {
+      background: #10141d;
+      border: 1px solid #283044;
+    }
+    .scale-box img {
+      display: block;
+    }
+    .code-card {
+      width: 100%;
+      max-width: 1080px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+    }
+    .tab-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tabs {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: var(--card-elev);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 11px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: var(--accent-gold);
+      border-color: rgba(254, 134, 5, 0.55);
+      background: rgba(254, 134, 5, 0.12);
+    }
+    pre.code-view {
+      background: #0c0f16;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.77rem;
+      line-height: 1.5;
+      color: #dbe3f4;
+      max-height: 300px;
+      overflow: auto;
+      white-space: pre;
+    }
+    .panel-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      min-height: 28px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Boost-CI — Procedural GLSL Shader &amp; Adaptive Vector SVGs</h1>
+    <p>Zero bitmaps. Starts <strong>Green</strong> at low RPM, warms into <strong>Boost Orange</strong>, struggles into <strong>Vivid Red</strong> at high load, then cools back to <strong>Orange + Highlight &amp; stops cleanly</strong>. Native <code>prefers-color-scheme: dark</code> adapts dark gray/black into brushed light gray.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="control-group">
+      <span>Variant:</span>
+      <div class="seg-switch" id="variantSwitch">
+        <button type="button" class="seg-btn active" data-variant="0">High-Res</button>
+        <button type="button" class="seg-btn" data-variant="1">Favicon Bold</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="control-group">
+      <label>
+        <input type="checkbox" id="toggleAnim" checked />
+        Auto Boost (Stop @ 100%)
+      </label>
+    </div>
+
+    <div class="control-group">
+      <span>RPM:</span>
+      <input type="range" id="progressSlider" min="0" max="1.10" step="0.002" value="1.00" />
+      <span class="readout" id="progressVal">100%</span>
+    </div>
+
+    <div class="control-group">
+      <span>Speed:</span>
+      <select id="speedSelect">
+        <option value="0.5">0.5&times;</option>
+        <option value="1" selected>1.0&times;</option>
+        <option value="1.5">1.5&times;</option>
+        <option value="2">2.0&times;</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <span>Theme:</span>
+      <select id="bgSelect">
+        <option value="auto" selected>Auto (Desktop Theme)</option>
+        <option value="white">Light (White + Dark Needle)</option>
+        <option value="dark">Dark (Light-Gray Needle)</option>
+        <option value="checker">Alpha Checker</option>
+      </select>
+    </div>
+
+    <button class="btn" id="triggerBoost">Replay Boost</button>
+    <button class="btn btn-ghost" id="snapRef">Final Orange (100%)</button>
+  </div>
+
+  <div class="section-label">
+    <h2>1. Comparaison Interactive Temps-Réel (Shader GLSL vs SVG Synchronisé)</h2>
+    <span>Vert au démarrage &rarr; Orange &rarr; Rouge vif en lutte &rarr; retour Orange + reflet puis arrêt net</span>
+  </div>
+
+  <div class="grid">
+    <!-- Panel 1: WebGL2 Procedural Fragment Shader -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="shaderPanelTitle">WebGL2 Shader — High-Res (u_variant = 0)</span>
+        <span class="badge" id="shaderPanelBadge">104.5px Ring &bull; Exact SDF</span>
+      </div>
+      <div class="viewport" id="shaderViewport">
+        <canvas id="glCanvas" width="1024" height="1024"></canvas>
+      </div>
+      <div class="panel-footer">
+        <span>Green &rarr; Orange &rarr; Vivid Red &rarr; Orange Stop</span>
+        <button class="btn btn-ghost" id="copyGlslBtn" style="padding:4px 10px;font-size:0.74rem;">Copy GLSL</button>
+      </div>
+    </div>
+
+    <!-- Panel 2: Synchronized Pure Vector SVG -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title" id="svgPanelTitle">Pure Vector SVG — High-Res</span>
+        <span class="badge" id="svgPanelBadge">0 Bitmaps &bull; Theme-Aware</span>
+      </div>
+      <div class="viewport" id="svgViewport">
+        <!-- High-Res Synchronized SVG -->
+        <svg id="boostSvgHiRes" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+          <defs>
+            <radialGradient id="greenStartGrad" cx="430" cy="360" r="660" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#B4F22C" />
+              <stop offset="28%" stop-color="#62E338" />
+              <stop offset="58%" stop-color="#2AD04E" />
+              <stop offset="85%" stop-color="#18B647" />
+              <stop offset="100%" stop-color="#10A040" />
+            </radialGradient>
+            <radialGradient id="orangeGrad" cx="620" cy="210" r="682" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FECE2A" />
+              <stop offset="14.2%" stop-color="#FEA412" />
+              <stop offset="28.3%" stop-color="#FE8B04" />
+              <stop offset="42.5%" stop-color="#FE8703" />
+              <stop offset="56.6%" stop-color="#FE8605" />
+              <stop offset="70.8%" stop-color="#FE7605" />
+              <stop offset="85.0%" stop-color="#FE5802" />
+              <stop offset="100%" stop-color="#FD4E02" />
+            </radialGradient>
+            <radialGradient id="redHeatGrad" cx="760" cy="310" r="690" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF5C26" />
+              <stop offset="24%" stop-color="#FF3814" />
+              <stop offset="54%" stop-color="#F8200C" />
+              <stop offset="80%" stop-color="#E61908" />
+              <stop offset="100%" stop-color="#D11708" />
+            </radialGradient>
+            <radialGradient id="darkGrad" cx="1170" cy="465" r="580" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="52.0%" stop-color="#828287" />
+              <stop offset="61.4%" stop-color="#515256" />
+              <stop offset="73.2%" stop-color="#313236" />
+              <stop offset="85.9%" stop-color="#292A2E" />
+              <stop offset="100%" stop-color="#292A2E" />
+            </radialGradient>
+            <radialGradient id="darkGradNight" cx="1150" cy="465" r="610" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="48%" stop-color="#D4D8E2" />
+              <stop offset="65%" stop-color="#B3B9C6" />
+              <stop offset="82%" stop-color="#98A0AF" />
+              <stop offset="100%" stop-color="#868E9E" />
+            </radialGradient>
+            <linearGradient id="needleGrad" x1="415" y1="622" x2="774" y2="340" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#131314" />
+              <stop offset="25%" stop-color="#1A1A1E" />
+              <stop offset="50%" stop-color="#25262A" />
+              <stop offset="75%" stop-color="#2B2C31" />
+              <stop offset="100%" stop-color="#26262B" />
+            </linearGradient>
+            <linearGradient id="needleGradNight" x1="415" y1="622" x2="774" y2="340" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#BDC4D1" />
+              <stop offset="35%" stop-color="#CFD5E1" />
+              <stop offset="72%" stop-color="#E2E7F0" />
+              <stop offset="100%" stop-color="#EEF2F8" />
+            </linearGradient>
+            <linearGradient id="shimmerGrad" x1="0" y1="0.2" x2="1" y2="0" gradientUnits="objectBoundingBox">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+              <stop offset="45%" stop-color="#FFE6C2" stop-opacity="0.38" />
+              <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.48" />
+              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+            </linearGradient>
+            <path id="fullDialRing" d="M 281.60,809.09 A 363.50,363.50 0 1 1 764.72,793.67 A 52.25,52.25 0 0 1 692.78,717.87 A 259.00,259.00 0 0 0 480.69,273.22 A 323.37,323.37 0 0 0 281.60,809.09 Z" />
+            <clipPath id="dialClip"><use href="#fullDialRing" /></clipPath>
+            <polygon id="gapWedge" points="626.99,398.38 823.84,271.06 839.29,293.37 686.24,488.29" />
+            <path id="dialSpine" d="M 327.81,815.27 A 322,322 0 0 1 402.37,248.92 A 322,322 0 0 1 823.53,634.84" />
+          </defs>
+          <mask id="darkSplitMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+            <rect width="1024" height="1024" fill="#FFFFFF" />
+            <use id="svgDarkSpine" href="#dialSpine" fill="none" stroke="#000000" stroke-width="180" stroke-linecap="butt" stroke-dasharray="1404.99 2000" stroke-dashoffset="306.29" />
+            <g transform="translate(512.5 551.5)"><g id="svgWedgeDark"><use href="#gapWedge" transform="translate(-512.5 -551.5)" fill="#000000" /></g></g>
+          </mask>
+          <mask id="orangeSplitMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+            <rect width="1024" height="1024" fill="#000000" />
+            <use id="svgOrangeSpine" href="#dialSpine" fill="none" stroke="#FFFFFF" stroke-width="180" stroke-linecap="butt" stroke-dasharray="1404.99 2000" stroke-dashoffset="306.29" />
+            <g transform="translate(512.5 551.5)"><g id="svgWedgeOrange"><use href="#gapWedge" transform="translate(-512.5 -551.5)" fill="#000000" /></g></g>
+          </mask>
+          <use id="svgHiResTrack" href="#fullDialRing" fill="url(#darkGrad)" mask="url(#darkSplitMask)" />
+          <g mask="url(#orangeSplitMask)">
+            <use href="#fullDialRing" fill="url(#orangeGrad)" />
+            <use id="svgGreenStart" href="#fullDialRing" fill="url(#greenStartGrad)" opacity="0" />
+            <use id="svgRedHeat" href="#fullDialRing" fill="url(#redHeatGrad)" opacity="0" />
+            <g clip-path="url(#dialClip)">
+              <rect id="svgShimmer" x="-360" y="120" width="320" height="720" fill="url(#shimmerGrad)" opacity="0" />
+            </g>
+          </g>
+          <g transform="translate(512.5 551.5)">
+            <g id="svgNeedleRotor">
+              <path id="svgHiResNeedle" transform="translate(-512.5 -551.5)" d="M 496.36,629.65 A 50.36,50.36 0 1 1 433.38,551.99 Q 601.65,444.12 772.31,339.19 A 1.78,1.78 0 0 1 774.54,341.94 Q 637.22,487.97 496.36,629.65 Z" fill="url(#needleGrad)" />
+            </g>
+          </g>
+        </svg>
+
+        <!-- Small / Favicon Bold Synchronized SVG -->
+        <svg id="boostSvgFav" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%" style="display:none;">
+          <defs>
+            <radialGradient id="favGreenStartGradSync" cx="410" cy="340" r="740" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#BAFA32" />
+              <stop offset="28%" stop-color="#64E63A" />
+              <stop offset="58%" stop-color="#28D24E" />
+              <stop offset="85%" stop-color="#16B846" />
+              <stop offset="100%" stop-color="#0EA23E" />
+            </radialGradient>
+            <radialGradient id="favOrangeGradSync" cx="615" cy="175" r="760" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFD836" />
+              <stop offset="22%" stop-color="#FFA30C" />
+              <stop offset="52%" stop-color="#FE7E03" />
+              <stop offset="80%" stop-color="#FC5602" />
+              <stop offset="100%" stop-color="#EE3D00" />
+            </radialGradient>
+            <radialGradient id="favRedHeatGradSync" cx="780" cy="285" r="760" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF622B" />
+              <stop offset="25%" stop-color="#FF3C16" />
+              <stop offset="55%" stop-color="#FA220E" />
+              <stop offset="82%" stop-color="#E81B09" />
+              <stop offset="100%" stop-color="#D41908" />
+            </radialGradient>
+            <radialGradient id="favDarkGradSync" cx="1180" cy="465" r="640" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="46%" stop-color="#858790" />
+              <stop offset="62%" stop-color="#4A4C53" />
+              <stop offset="78%" stop-color="#27292E" />
+              <stop offset="100%" stop-color="#1E2025" />
+            </radialGradient>
+            <radialGradient id="favDarkGradNightSync" cx="1150" cy="465" r="650" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFFFFF" />
+              <stop offset="48%" stop-color="#D5D9E3" />
+              <stop offset="70%" stop-color="#B4BAC8" />
+              <stop offset="100%" stop-color="#8A92A2" />
+            </radialGradient>
+            <linearGradient id="favNeedleGradSync" x1="395" y1="635" x2="802" y2="310" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#0E0E10" />
+              <stop offset="45%" stop-color="#1A1B20" />
+              <stop offset="80%" stop-color="#25272E" />
+              <stop offset="100%" stop-color="#1F2026" />
+            </linearGradient>
+            <linearGradient id="favNeedleGradNightSync" x1="395" y1="635" x2="802" y2="310" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#C0C7D4" />
+              <stop offset="45%" stop-color="#D6DCE8" />
+              <stop offset="82%" stop-color="#E6EBF4" />
+              <stop offset="100%" stop-color="#F1F4FA" />
+            </linearGradient>
+            <linearGradient id="favShimmerGradSync" x1="0" y1="0.2" x2="1" y2="0" gradientUnits="objectBoundingBox">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+              <stop offset="45%" stop-color="#FFE8C8" stop-opacity="0.44" />
+              <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.54" />
+              <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+            </linearGradient>
+            <path id="favFullRingSync" d="M 178.23,854.32 A 464.00,464.00 0 1 1 859.52,839.46 A 89.00,89.00 0 0 1 726.20,721.50 A 286.00,286.00 0 0 0 395.67,270.73 A 402.64,402.64 0 0 0 206.93,833.12 A 18.00,18.00 0 0 1 178.23,854.32 Z" />
+            <clipPath id="favDialClipSync"><use href="#favFullRingSync" /></clipPath>
+            <polygon id="favGapWedgeSync" points="547.21,365.34 867.55,180.18 946.18,277.45 697.98,551.86" />
+            <path id="favDialSpineSync" d="M 296.34,856.00 A 376,376 0 0 1 512.00,172.00 A 376,376 0 0 1 700.00,873.63" />
+          </defs>
+          <mask id="favDarkMaskSync" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+            <rect width="1024" height="1024" fill="#FFFFFF" />
+            <use id="favDarkSpineEl" href="#favDialSpineSync" fill="none" stroke="#000000" stroke-width="250" stroke-linecap="butt" stroke-dasharray="1935.92 2600" stroke-dashoffset="649.35" />
+            <g transform="translate(512.0 548.0)"><g id="favWedgeDarkEl"><use href="#favGapWedgeSync" transform="translate(-512.0 -548.0)" fill="#000000" /></g></g>
+          </mask>
+          <mask id="favOrangeMaskSync" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+            <rect width="1024" height="1024" fill="#000000" />
+            <use id="favOrangeSpineEl" href="#favDialSpineSync" fill="none" stroke="#FFFFFF" stroke-width="250" stroke-linecap="butt" stroke-dasharray="1935.92 2600" stroke-dashoffset="649.35" />
+            <g transform="translate(512.0 548.0)"><g id="favWedgeOrangeEl"><use href="#favGapWedgeSync" transform="translate(-512.0 -548.0)" fill="#000000" /></g></g>
+          </mask>
+          <use id="svgFavTrack" href="#favFullRingSync" fill="url(#favDarkGradSync)" mask="url(#favDarkMaskSync)" />
+          <g mask="url(#favOrangeMaskSync)">
+            <use href="#favFullRingSync" fill="url(#favOrangeGradSync)" />
+            <use id="favGreenStartEl" href="#favFullRingSync" fill="url(#favGreenStartGradSync)" opacity="0" />
+            <use id="favRedHeatEl" href="#favFullRingSync" fill="url(#favRedHeatGradSync)" opacity="0" />
+            <g clip-path="url(#favDialClipSync)">
+              <rect id="favShimmerEl" x="-380" y="50" width="360" height="840" fill="url(#favShimmerGradSync)" opacity="0" />
+            </g>
+          </g>
+          <g transform="translate(512.0 548.0)">
+            <g id="favNeedleRotorEl">
+              <path id="svgFavNeedle" transform="translate(-512.0 -548.0)" d="M 515.27,649.52 A 82.00,82.00 0 1 1 413.42,523.53 Q 594.66,410.68 782.91,309.96 A 15.00,15.00 0 0 1 801.54,333.01 Q 663.59,495.96 515.27,649.52 Z" fill="url(#favNeedleGradSync)" />
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="panel-footer">
+        <span>Auto <code>prefers-color-scheme: dark</code> inside all SVGs</span>
+        <div class="actions">
+          <a class="btn btn-ghost" id="openActiveSvgLink" href="boost-ci.svg" target="_blank" style="text-decoration:none;padding:4px 9px;font-size:0.74rem;">Ouvrir</a>
+          <a class="btn btn-ghost" id="dlActiveSvgLink" href="boost-ci.svg" download="boost-ci.svg" style="text-decoration:none;padding:4px 9px;font-size:0.74rem;">Télécharger</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Side-by-Side Optical Size Matrix (Light & Adaptive Dark Theme) -->
+  <div class="section-label">
+    <h2>2. Adaptation Thème Clair / Sombre &amp; Variantes Optiques (16px &rarr; 64px)</h2>
+    <span>En thème sombre, le gris foncé/noir devient gris clair métallisé directement dans chaque SVG</span>
+  </div>
+
+  <div class="optical-card">
+    <div class="browser-tabs-demo">
+      <div class="mock-browser-bar">
+        <div class="mock-bar-caption">
+          <span>Variante <strong>High-Res</strong> réduite à 16&times;16px</span>
+          <span>Clair &amp; Sombre adaptatif</span>
+        </div>
+        <div class="mock-tabs-row">
+          <div class="mock-tab light" id="hrLightTabMock"></div>
+          <div class="mock-tab dark" id="hrDarkTabMock"></div>
+        </div>
+      </div>
+
+      <div class="mock-browser-bar" style="border-color: rgba(254, 150, 15, 0.5);">
+        <div class="mock-bar-caption">
+          <span style="color: var(--accent-gold);">Variante Dédiée <strong>Small / Favicon Bold</strong> à 16&times;16px</span>
+          <span style="color: var(--accent-gold);">Anneau 2.8px &bull; Fente 1.1px &bull; Gris clair en Dark Mode</span>
+        </div>
+        <div class="mock-tabs-row">
+          <div class="mock-tab light" id="favLightTabMock"></div>
+          <div class="mock-tab dark" id="favDarkTabMock"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="matrix-table">
+      <div class="matrix-row-label">
+        <strong>Small / Favicon Bold</strong>
+        <span><code>boost-ci-favicon.svg</code> &bull; Cadrage 91%, anneau 178px, fente 70px (Clair / Sombre)</span>
+      </div>
+      <div class="scale-icons" id="faviconScaleRow"></div>
+
+      <div class="matrix-row-label">
+        <strong>High-Res Display</strong>
+        <span><code>boost-ci-static.svg</code> &bull; Silhouette exacte, anneau 104.5px (Clair / Sombre)</span>
+      </div>
+      <div class="scale-icons" id="hiresScaleRow"></div>
+    </div>
+  </div>
+
+  <!-- Section 3: All 4 Standalone SVG Deliverables -->
+  <div class="section-label">
+    <h2>3. Les 4 Livrables SVG Autonomes (&lt;img src="..."&gt;, Zéro JS)</h2>
+    <span>Détectent automatiquement le thème bureau (<code>prefers-color-scheme: dark</code>) et s’arrêtent sur l’orange final</span>
+  </div>
+
+  <div class="grid-4">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">High-Res Animé</span>
+        <span class="badge">CSS 4.4s &rarr; Stop</span>
+      </div>
+      <div class="viewport standalone-vp">
+        <img id="standaloneHiResAnim" src="boost-ci.svg" alt="High-Res Animated SVG" />
+      </div>
+      <div class="panel-footer">
+        <span><code>boost-ci.svg</code></span>
+        <div class="actions">
+          <a class="btn btn-ghost" href="boost-ci.svg" download="boost-ci.svg" style="text-decoration:none;padding:3px 8px;font-size:0.72rem;">DL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">High-Res Statique</span>
+        <span class="badge">3 Paths</span>
+      </div>
+      <div class="viewport standalone-vp">
+        <img src="boost-ci-static.svg" alt="High-Res Static SVG" />
+      </div>
+      <div class="panel-footer">
+        <span><code>boost-ci-static.svg</code></span>
+        <div class="actions">
+          <a class="btn btn-ghost" href="boost-ci-static.svg" download="boost-ci-static.svg" style="text-decoration:none;padding:3px 8px;font-size:0.72rem;">DL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-highlight">
+      <div class="panel-header">
+        <span class="panel-title">Favicon Bold Animé</span>
+        <span class="badge badge-red">16–48px &rarr; Stop</span>
+      </div>
+      <div class="viewport standalone-vp">
+        <img id="standaloneFavAnim" src="boost-ci-favicon-anim.svg" alt="Favicon Bold Animated SVG" />
+      </div>
+      <div class="panel-footer">
+        <span><code>boost-ci-favicon-anim.svg</code></span>
+        <div class="actions">
+          <a class="btn btn-ghost" href="boost-ci-favicon-anim.svg" download="boost-ci-favicon-anim.svg" style="text-decoration:none;padding:3px 8px;font-size:0.72rem;">DL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-highlight">
+      <div class="panel-header">
+        <span class="panel-title">Favicon Bold Statique</span>
+        <span class="badge badge-red">16–48px Icon</span>
+      </div>
+      <div class="viewport standalone-vp">
+        <img src="boost-ci-favicon.svg" alt="Favicon Bold Static SVG" />
+      </div>
+      <div class="panel-footer">
+        <span><code>boost-ci-favicon.svg</code></span>
+        <div class="actions">
+          <a class="btn btn-ghost" href="boost-ci-favicon.svg" download="boost-ci-favicon.svg" style="text-decoration:none;padding:3px 8px;font-size:0.72rem;">DL</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Inspector Card -->
+  <div class="code-card">
+    <div class="tab-bar">
+      <div class="tabs">
+        <button class="tab-btn active" data-file="boost-ci.frag">boost-ci.frag (GLSL)</button>
+        <button class="tab-btn" data-file="boost-ci.svg">boost-ci.svg</button>
+        <button class="tab-btn" data-file="boost-ci-static.svg">boost-ci-static.svg</button>
+        <button class="tab-btn" data-file="boost-ci-favicon.svg">boost-ci-favicon.svg</button>
+        <button class="tab-btn" data-file="boost-ci-favicon-anim.svg">boost-ci-favicon-anim.svg</button>
+      </div>
+      <div class="actions">
+        <a class="btn btn-ghost" id="rawFileLink" href="boost-ci.frag" target="_blank" style="text-decoration:none;padding:5px 11px;font-size:0.76rem;">Fichier brut</a>
+        <button class="btn btn-ghost" id="copyCodeTabBtn" style="padding:5px 11px;font-size:0.76rem;">Copier le code</button>
+      </div>
+    </div>
+    <pre class="code-view" id="codeViewer">Chargement du code source…</pre>
+  </div>
+
+  <script>
+    // Explicit Light / Dark theme preview generators for the comparison matrix
+    function buildPreviewSvg(sz, id, isFav, isDark) {
+      if (isFav) {
+        const trackStops = isDark
+          ? `<stop offset="0%" stop-color="#FFFFFF"/><stop offset="48%" stop-color="#D5D9E3"/><stop offset="70%" stop-color="#B4BAC8"/><stop offset="100%" stop-color="#8A92A2"/>`
+          : `<stop offset="0%" stop-color="#FFFFFF"/><stop offset="46%" stop-color="#858790"/><stop offset="62%" stop-color="#4A4C53"/><stop offset="78%" stop-color="#27292E"/><stop offset="100%" stop-color="#1E2025"/>`;
+        const needleStops = isDark
+          ? `<stop offset="0%" stop-color="#C0C7D4"/><stop offset="45%" stop-color="#D6DCE8"/><stop offset="82%" stop-color="#E6EBF4"/><stop offset="100%" stop-color="#F1F4FA"/>`
+          : `<stop offset="0%" stop-color="#0E0E10"/><stop offset="45%" stop-color="#1A1B20"/><stop offset="80%" stop-color="#25272E"/><stop offset="100%" stop-color="#1F2026"/>`;
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="${sz}" height="${sz}" style="display:block;">
+          <defs>
+            <radialGradient id="og_${id}" cx="615" cy="175" r="760" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFD836"/><stop offset="22%" stop-color="#FFA30C"/><stop offset="52%" stop-color="#FE7E03"/><stop offset="80%" stop-color="#FC5602"/><stop offset="100%" stop-color="#EE3D00"/>
+            </radialGradient>
+            <radialGradient id="dg_${id}" cx="1150" cy="465" r="645" gradientUnits="userSpaceOnUse">${trackStops}</radialGradient>
+            <linearGradient id="ng_${id}" x1="395" y1="635" x2="802" y2="310" gradientUnits="userSpaceOnUse">${needleStops}</linearGradient>
+          </defs>
+          <path d="M 178.23,854.32 A 464.00,464.00 0 0 1 835.07,198.96 L 670.61,294.01 A 286.00,286.00 0 0 0 395.67,270.73 A 402.64,402.64 0 0 0 206.93,833.12 A 18.00,18.00 0 0 1 178.23,854.32 Z" fill="url(#og_${id})"/>
+          <path d="M 918.42,308.13 A 464.00,464.00 0 0 1 859.52,839.46 A 89.00,89.00 0 0 1 726.20,721.50 A 286.00,286.00 0 0 0 787.00,453.44 Z" fill="url(#dg_${id})"/>
+          <path d="M 515.27,649.52 A 82.00,82.00 0 1 1 413.42,523.53 Q 594.66,410.68 782.91,309.96 A 15.00,15.00 0 0 1 801.54,333.01 Q 663.59,495.96 515.27,649.52 Z" fill="url(#ng_${id})"/>
+        </svg>`;
+      }
+      const trackStops = isDark
+        ? `<stop offset="0%" stop-color="#FFFFFF"/><stop offset="48%" stop-color="#D4D8E2"/><stop offset="65%" stop-color="#B3B9C6"/><stop offset="82%" stop-color="#98A0AF"/><stop offset="100%" stop-color="#868E9E"/>`
+        : `<stop offset="0%" stop-color="#FFFFFF"/><stop offset="52%" stop-color="#828287"/><stop offset="61.4%" stop-color="#515256"/><stop offset="73.2%" stop-color="#313236"/><stop offset="100%" stop-color="#292A2E"/>`;
+      const needleStops = isDark
+        ? `<stop offset="0%" stop-color="#BDC4D1"/><stop offset="35%" stop-color="#CFD5E1"/><stop offset="72%" stop-color="#E2E7F0"/><stop offset="100%" stop-color="#EEF2F8"/>`
+        : `<stop offset="0%" stop-color="#131314"/><stop offset="50%" stop-color="#25262A"/><stop offset="75%" stop-color="#2B2C31"/><stop offset="100%" stop-color="#26262B"/>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="${sz}" height="${sz}" style="display:block;">
+        <defs>
+          <radialGradient id="og_${id}" cx="620" cy="210" r="682" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FECE2A"/><stop offset="14.2%" stop-color="#FEA412"/><stop offset="28.3%" stop-color="#FE8B04"/><stop offset="56.6%" stop-color="#FE8605"/><stop offset="85%" stop-color="#FE5802"/><stop offset="100%" stop-color="#FD4E02"/>
+          </radialGradient>
+          <radialGradient id="dg_${id}" cx="1160" cy="465" r="595" gradientUnits="userSpaceOnUse">${trackStops}</radialGradient>
+          <linearGradient id="ng_${id}" x1="415" y1="622" x2="774" y2="340" gradientUnits="userSpaceOnUse">${needleStops}</linearGradient>
+        </defs>
+        <path d="M 281.60,809.09 A 363.50,363.50 0 1 1 790.25,293.16 L 701.08,350.37 A 259.00,259.00 0 0 0 480.69,273.22 A 323.37,323.37 0 0 0 281.60,809.09 Z" fill="url(#og_${id})"/>
+        <path d="M 814.13,324.19 A 363.50,363.50 0 0 1 764.72,793.67 A 52.25,52.25 0 0 1 692.78,717.87 A 259.00,259.00 0 0 0 745.22,412.32 Z" fill="url(#dg_${id})"/>
+        <path d="M 496.36,629.65 A 50.36,50.36 0 1 1 433.38,551.99 Q 601.65,444.12 772.31,339.19 A 1.78,1.78 0 0 1 774.54,341.94 Q 637.22,487.97 496.36,629.65 Z" fill="url(#ng_${id})"/>
+      </svg>`;
+    }
+
+    document.getElementById("hrLightTabMock").innerHTML  = `${buildPreviewSvg(16, "hrL", false, false)}<span>Boost-CI (Light)</span>`;
+    document.getElementById("hrDarkTabMock").innerHTML   = `${buildPreviewSvg(16, "hrD", false, true)}<span>Boost-CI (Dark)</span>`;
+    document.getElementById("favLightTabMock").innerHTML = `${buildPreviewSvg(16, "fvL", true, false)}<span>Boost-CI (Light)</span>`;
+    document.getElementById("favDarkTabMock").innerHTML  = `${buildPreviewSvg(16, "fvD", true, true)}<span>Boost-CI (Dark)</span>`;
+
+    const sizes = [16, 20, 24, 32, 48, 64];
+    function populateScaleRow(containerId, isFav) {
+      const row = document.getElementById(containerId);
+      sizes.forEach((sz, idx) => {
+        const item = document.createElement("div");
+        item.className = "scale-item";
+        const pfx = (isFav ? "f" : "h") + idx;
+        item.innerHTML = `
+          <div class="scale-pair">
+            <div class="scale-box" title="${sz}px Light Theme">${buildPreviewSvg(sz, pfx + "L", isFav, false)}</div>
+            <div class="scale-box dark" title="${sz}px Dark Theme (Light-Gray Needle)">${buildPreviewSvg(sz, pfx + "D", isFav, true)}</div>
+          </div>
+          <span>${sz}px</span>
+        `;
+        row.appendChild(item);
+      });
+    }
+    populateScaleRow("faviconScaleRow", true);
+    populateScaleRow("hiresScaleRow", false);
+
+    // WebGL2 Dual-Variant + Theme-Aware Fragment Shader (matches boost-ci.frag)
+    const vsSource = `#version 300 es
+    in vec2 a_pos;
+    void main() {
+      gl_Position = vec4(a_pos, 0.0, 1.0);
+    }`;
+
+    const fsSource = `#version 300 es
+    precision highp float;
+
+    uniform vec2  u_resolution;
+    uniform float u_time;
+    uniform float u_progress;
+    uniform float u_animate;
+    uniform float u_speed;
+    uniform float u_bg_alpha;
+    uniform float u_variant;
+    uniform float u_dark_mode;
+
+    out vec4 fragColor;
+
+    const float PI  = 3.14159265358979323846;
+    const float TAU = 6.28318530717958647692;
+    const float DEG = 0.01745329251994329577;
+
+    float sdHiResDialRing(vec2 p) {
+        const vec2  C       = vec2(514.50, 530.00);
+        const vec2  C_TAPER = vec2(522.9018, 593.8177);
+        const vec2  C_CAP   = vec2(728.7504, 755.7728);
+        const vec2  P_TIP   = vec2(281.6046, 809.0914);
+        const float R_OUT   = 363.50;
+        const float R_IN    = 259.00;
+        const float R_TAPER = 323.3683;
+        const float R_CAP   = 52.25;
+
+        vec2  d   = p - C;
+        float r   = length(d);
+        float th  = atan(d.y, d.x);
+        float th1 = (th > 1.8) ? (th - TAU) : th;
+
+        if (th1 > 0.811578) return length(p - C_CAP) - R_CAP;
+        if (th1 < -4.016976) return length(p - P_TIP);
+
+        float dOut = r - R_OUT;
+        float dIn  = (th1 > -1.701696) ? (R_IN - r) : (R_TAPER - length(p - C_TAPER));
+        return max(dOut, dIn);
+    }
+
+    float sdFaviconDialRing(vec2 p) {
+        const vec2  C       = vec2(512.00, 532.00);
+        const vec2  C_TAPER = vec2(559.4409, 638.5541);
+        const vec2  C_CAP   = vec2(792.8584, 780.4825);
+        const vec2  C_TIP   = vec2(191.1744, 841.8176);
+        const vec2  T_OUT   = vec2(0.694658, 0.719340);
+        const vec2  T_IN    = vec2(0.483227, 0.875495);
+        const float R_OUT   = 464.00;
+        const float R_IN    = 286.00;
+        const float R_TAPER = 402.6379;
+        const float R_CAP   = 89.00;
+        const float R_TIP   = 18.00;
+
+        vec2  d   = p - C;
+        float r   = length(d);
+        float th  = atan(d.y, d.x);
+        float th1 = (th > 1.8) ? (th - TAU) : th;
+
+        if (th1 > 0.724312) return length(p - C_CAP) - R_CAP;
+        if (th1 < -3.2) {
+            vec2 q = p - C_TIP;
+            if (dot(q, T_OUT) > 0.0 && dot(q, T_IN) > 0.0) {
+                return length(q) - R_TIP;
+            }
+        }
+
+        float dOut = r - R_OUT;
+        float dIn  = (th1 > -1.989675) ? (R_IN - r) : (R_TAPER - length(p - C_TAPER));
+        return max(dOut, dIn);
+    }
+
+    float sdHiResNeedleLocal(vec2 rp, out float tGrad) {
+        vec2 a = vec2(460.16, 594.64);
+        vec2 b = vec2(773.26, 340.70) - a;
+        vec2 rel = rp - a;
+        float sh = length(b);
+        float qy = dot(rel, b) / sh;
+        float t  = clamp(qy / sh, 0.0, 1.0);
+        float s  = (rel.x * (-b.y) + rel.y * b.x) / sh - 0.90 * t * (1.0 - t);
+        float qx = abs(s);
+
+        float ra = 50.36;
+        float rb = 1.78;
+        float slope = (ra - rb) / sh;
+        float c = sqrt(max(1.0 - slope * slope, 1e-6));
+        float k = qx * (-slope) + qy * c;
+
+        float d;
+        if (k < 0.0) d = length(vec2(qx, qy)) - ra;
+        else if (k > c * sh) d = length(vec2(qx, qy - sh)) - rb;
+        else d = qx * c + qy * slope - ra;
+
+        vec2 gVec = vec2(359.0, -282.0);
+        tGrad = clamp(dot(rp - vec2(415.0, 622.0), gVec) / dot(gVec, gVec), 0.0, 1.0);
+        return d - 4.70 * t * (1.0 - t);
+    }
+
+    float sdFaviconNeedleLocal(vec2 rp, out float tGrad) {
+        vec2 a = vec2(454.45, 594.52);
+        vec2 b = vec2(790.41, 322.95) - a;
+        vec2 rel = rp - a;
+        float sh = length(b);
+        float qy = dot(rel, b) / sh;
+        float t  = clamp(qy / sh, 0.0, 1.0);
+        float qx = abs((rel.x * (-b.y) + rel.y * b.x) / sh);
+
+        float ra = 82.00;
+        float rb = 15.00;
+        float slope = (ra - rb) / sh;
+        float c = sqrt(max(1.0 - slope * slope, 1e-6));
+        float k = qx * (-slope) + qy * c;
+
+        float d;
+        if (k < 0.0) d = length(vec2(qx, qy)) - ra;
+        else if (k > c * sh) d = length(vec2(qx, qy - sh)) - rb;
+        else d = qx * c + qy * slope - ra;
+
+        vec2 gVec = vec2(407.0, -325.0);
+        tGrad = clamp(dot(rp - vec2(395.0, 635.0), gVec) / dot(gVec, gVec), 0.0, 1.0);
+        return d - 14.0 * t * (1.0 - t);
+    }
+
+    float easeOutPow(float u, float p) {
+        return 1.0 - pow(max(1.0 - clamp(u, 0.0, 1.0), 0.0), p);
+    }
+    float easeInOut(float u) {
+        u = clamp(u, 0.0, 1.0);
+        return u * u * (3.0 - 2.0 * u);
+    }
+
+    void getBoostKinematics(float time, float manualProgress, float animateFlag,
+                            out float needleRotRad, out float shimmerX,
+                            out float sparkGlow, out float greenStart, out float redHeat) {
+        const float START_DEG = -189.0;
+        const float DURATION  = 4.4;
+
+        if (animateFlag < 0.5) {
+            if (manualProgress < 0.0) {
+                needleRotRad = 0.0; shimmerX = -1000.0; greenStart = 0.0; redHeat = 0.0; sparkGlow = 0.0;
+                return;
+            }
+            float p = clamp(manualProgress, 0.0, 1.15);
+            float deg = (p <= 1.0) ? mix(START_DEG, 0.0, p) : (p - 1.0) * 166.15;
+            needleRotRad = deg * DEG;
+            shimmerX     = -1000.0;
+            greenStart   = 1.0 - smoothstep(0.20, 0.48, p);
+            redHeat      = smoothstep(0.58, 0.98, p);
+            sparkGlow    = redHeat * 0.70;
+            return;
+        }
+
+        if (time >= DURATION) {
+            needleRotRad = 0.0; shimmerX = -1000.0; greenStart = 0.0; redHeat = 0.0; sparkGlow = 0.0;
+            return;
+        }
+
+        float c = clamp(time / DURATION, 0.0, 1.0);
+        float deg = START_DEG;
+        shimmerX = -1000.0; sparkGlow = 0.0; greenStart = 0.0; redHeat = 0.0;
+        float tremorAmp = 0.0;
+
+        if (c < 0.050) {
+            float u = c / 0.050;
+            deg = mix(-189.0, -165.0, easeOutPow(u, 2.4));
+            greenStart = 1.00; sparkGlow = u * 0.22; tremorAmp = 0.35;
+        } else if (c < 0.100) {
+            float u = (c - 0.050) / 0.050;
+            deg = mix(-165.0, -182.0, easeInOut(u));
+            greenStart = 1.00; sparkGlow = (1.0 - u) * 0.18; tremorAmp = 0.25;
+        } else if (c < 0.220) {
+            float u = (c - 0.100) / 0.120;
+            deg = mix(-182.0, -104.0, easeOutPow(u, 2.1));
+            greenStart = mix(1.00, 0.72, smoothstep(0.35, 1.0, u)); sparkGlow = 0.30 + 0.30 * sin(u * PI); tremorAmp = 0.30 * u;
+        } else if (c < 0.265) {
+            float u = (c - 0.220) / 0.045;
+            deg = mix(-104.0, -120.0, easeInOut(u));
+            greenStart = mix(0.72, 0.55, easeInOut(u)); sparkGlow = 0.18;
+        } else if (c < 0.400) {
+            float u = (c - 0.265) / 0.135;
+            deg = mix(-120.0, -46.0, easeOutPow(u, 2.3));
+            greenStart = mix(0.55, 0.0, smoothstep(0.0, 0.92, u));
+            redHeat = smoothstep(0.70, 1.0, u) * 0.12;
+            sparkGlow = 0.42 + 0.32 * u; tremorAmp = 0.45 * u;
+        } else if (c < 0.445) {
+            float u = (c - 0.400) / 0.045;
+            deg = mix(-46.0, -61.0, easeInOut(u));
+            redHeat = mix(0.12, 0.05, easeInOut(u)); sparkGlow = 0.22;
+        } else if (c < 0.570) {
+            float u = (c - 0.445) / 0.125;
+            deg = mix(-61.0, -21.0, easeOutPow(u, 2.6));
+            redHeat = mix(0.05, 0.48, easeInOut(u)); sparkGlow = mix(0.45, 0.78, u); tremorAmp = mix(0.35, 0.85, u);
+        } else if (c < 0.615) {
+            float u = (c - 0.570) / 0.045;
+            deg = mix(-21.0, -14.5, easeInOut(u));
+            redHeat = mix(0.48, 0.68, easeInOut(u)); sparkGlow = 0.84; tremorAmp = 0.95;
+        } else if (c < 0.645) {
+            float u = (c - 0.615) / 0.030;
+            deg = mix(-14.5, -17.2, easeInOut(u));
+            redHeat = mix(0.68, 0.55, easeInOut(u)); sparkGlow = 0.65; tremorAmp = 0.80;
+        } else if (c < 0.700) {
+            float u = (c - 0.645) / 0.055;
+            deg = mix(-17.2, -6.8, easeOutPow(u, 1.9));
+            redHeat = mix(0.55, 0.86, easeInOut(u)); sparkGlow = 0.94; tremorAmp = 1.15;
+        } else if (c < 0.730) {
+            float u = (c - 0.700) / 0.030;
+            deg = mix(-6.8, -9.0, easeInOut(u));
+            redHeat = mix(0.86, 0.74, easeInOut(u)); sparkGlow = 0.78; tremorAmp = 1.00;
+        } else if (c < 0.780) {
+            float u = (c - 0.730) / 0.050;
+            deg = mix(-9.0, 2.6, easeOutPow(u, 1.8));
+            redHeat = mix(0.74, 1.00, easeOutPow(u, 1.6)); sparkGlow = 1.00; tremorAmp = 1.25;
+        } else if (c < 0.845) {
+            float u = (c - 0.780) / 0.065;
+            deg = 2.6 * exp(-3.4 * u) * cos(u * PI * 3.0);
+            redHeat = 0.94 + 0.06 * sin(u * PI * 3.0);
+            sparkGlow = mix(1.0, 0.52, u); tremorAmp = mix(0.80, 0.18, u);
+            if (u > 0.60) shimmerX = mix(-240.0, 120.0, (u - 0.60) / 0.40);
+        } else {
+            float u = (c - 0.845) / 0.155;
+            deg = 0.0;
+            tremorAmp = 0.15 * max(0.0, 1.0 - u * 1.8);
+            sparkGlow = 0.52 * max(0.0, 1.0 - u * 1.5);
+            redHeat   = 1.0 - smoothstep(0.04, 0.62, u);
+            if (u < 0.94) shimmerX = mix(120.0, 1280.0, clamp(u / 0.88, 0.0, 1.0));
+        }
+
+        float vib = (sin(time * 148.0) * 0.65 + sin(time * 233.0 + 1.3) * 0.35) * tremorAmp;
+        needleRotRad = (deg + vib) * DEG;
+    }
+
+    vec3 shadeOrange(vec2 p, float distToCut, float shimmerX, float sparkGlow,
+                     float greenStart, float redHeat, float time, bool isFav) {
+        vec2  gCenter = isFav ? vec2(615.0, 175.0) : vec2(620.0, 210.0);
+        float gRadius = isFav ? 760.0 : 682.0;
+        float d = clamp(length(p - gCenter) / gRadius, 0.0, 1.0);
+
+        vec3 orangeCol;
+        if (isFav) {
+            vec3 f0 = vec3(1.0000, 0.8471, 0.2118);
+            vec3 f1 = vec3(1.0000, 0.6392, 0.0471);
+            vec3 f2 = vec3(0.9961, 0.4941, 0.0118);
+            vec3 f3 = vec3(0.9882, 0.3373, 0.0078);
+            vec3 f4 = vec3(0.9333, 0.2392, 0.0000);
+            if      (d < 0.22) orangeCol = mix(f0, f1, d / 0.22);
+            else if (d < 0.52) orangeCol = mix(f1, f2, (d - 0.22) / 0.30);
+            else if (d < 0.80) orangeCol = mix(f2, f3, (d - 0.52) / 0.28);
+            else               orangeCol = mix(f3, f4, (d - 0.80) / 0.20);
+        } else {
+            vec3 c0 = vec3(0.9961, 0.8078, 0.1647);
+            vec3 c1 = vec3(0.9961, 0.6431, 0.0706);
+            vec3 c2 = vec3(0.9961, 0.5451, 0.0157);
+            vec3 c3 = vec3(0.9961, 0.5294, 0.0118);
+            vec3 c4 = vec3(0.9961, 0.5255, 0.0196);
+            vec3 c5 = vec3(0.9961, 0.4627, 0.0196);
+            vec3 c6 = vec3(0.9961, 0.3451, 0.0078);
+            vec3 c7 = vec3(0.9922, 0.3059, 0.0078);
+            if      (d < 0.142) orangeCol = mix(c0, c1, d / 0.142);
+            else if (d < 0.283) orangeCol = mix(c1, c2, (d - 0.142) / 0.141);
+            else if (d < 0.425) orangeCol = mix(c2, c3, (d - 0.283) / 0.142);
+            else if (d < 0.566) orangeCol = mix(c3, c4, (d - 0.425) / 0.141);
+            else if (d < 0.708) orangeCol = mix(c4, c5, (d - 0.566) / 0.142);
+            else if (d < 0.850) orangeCol = mix(c5, c6, (d - 0.708) / 0.142);
+            else                orangeCol = mix(c6, c7, (d - 0.850) / 0.150);
+        }
+
+        vec3 col = orangeCol;
+
+        if (greenStart > 0.001) {
+            float dg = clamp(length(p - (isFav ? vec2(410.0, 340.0) : vec2(430.0, 360.0))) / (isFav ? 740.0 : 660.0), 0.0, 1.0);
+            vec3 g0 = vec3(0.7059, 0.9490, 0.1725);
+            vec3 g1 = vec3(0.3843, 0.8902, 0.2196);
+            vec3 g2 = vec3(0.1647, 0.8157, 0.3059);
+            vec3 g3 = vec3(0.0941, 0.7137, 0.2784);
+            vec3 g4 = vec3(0.0627, 0.6275, 0.2510);
+            vec3 greenCol;
+            if      (dg < 0.28) greenCol = mix(g0, g1, dg / 0.28);
+            else if (dg < 0.58) greenCol = mix(g1, g2, (dg - 0.28) / 0.30);
+            else if (dg < 0.85) greenCol = mix(g2, g3, (dg - 0.58) / 0.27);
+            else                greenCol = mix(g3, g4, (dg - 0.85) / 0.15);
+            col = mix(col, greenCol, clamp(greenStart, 0.0, 1.0));
+        }
+
+        if (redHeat > 0.001) {
+            float dr = clamp(length(p - (isFav ? vec2(780.0, 285.0) : vec2(760.0, 310.0))) / (isFav ? 760.0 : 690.0), 0.0, 1.0);
+            vec3 r0 = vec3(1.0000, 0.3608, 0.1490);
+            vec3 r1 = vec3(1.0000, 0.2196, 0.0784);
+            vec3 r2 = vec3(0.9725, 0.1255, 0.0471);
+            vec3 r3 = vec3(0.9020, 0.0980, 0.0314);
+            vec3 r4 = vec3(0.8196, 0.0902, 0.0314);
+            vec3 redCol;
+            if      (dr < 0.24) redCol = mix(r0, r1, dr / 0.24);
+            else if (dr < 0.54) redCol = mix(r1, r2, (dr - 0.24) / 0.30);
+            else if (dr < 0.80) redCol = mix(r2, r3, (dr - 0.54) / 0.26);
+            else                redCol = mix(r3, r4, (dr - 0.80) / 0.20);
+            col = mix(col, redCol, clamp(redHeat, 0.0, 1.0));
+        }
+
+        if (sparkGlow > 0.001) {
+            float flicker = 0.86 + 0.14 * sin(time * 105.0);
+            float edgeHeat = exp(-max(-distToCut, 0.0) * 0.034) * sparkGlow * flicker;
+            vec3 sparkCol = mix(vec3(1.0, 0.96, 0.68), vec3(1.0, 0.56, 0.28), redHeat);
+            col = mix(col, sparkCol, clamp(edgeHeat * 0.62, 0.0, 0.75));
+        }
+
+        if (shimmerX > -500.0) {
+            float diagX = p.x + (540.0 - p.y) * 0.22;
+            float band  = exp(-pow((diagX - shimmerX) / 115.0, 2.0));
+            col = mix(col, vec3(1.0, 0.95, 0.82), band * 0.40);
+        }
+
+        return clamp(col, 0.0, 1.0);
+    }
+
+    vec3 shadeDark(vec2 p, bool isFav, float darkMode) {
+        float dLight = clamp(length(p - (isFav ? vec2(1180.0, 465.0) : vec2(1170.0, 465.0))) / (isFav ? 640.0 : 580.0), 0.0, 1.0);
+        vec3 lightThemeCol;
+        if (isFav) {
+            vec3 f0 = vec3(1.0000, 1.0000, 1.0000);
+            vec3 f1 = vec3(0.5216, 0.5294, 0.5647);
+            vec3 f2 = vec3(0.2902, 0.2980, 0.3255);
+            vec3 f3 = vec3(0.1529, 0.1608, 0.1804);
+            vec3 f4 = vec3(0.1176, 0.1255, 0.1451);
+            if      (dLight < 0.46) lightThemeCol = mix(f0, f1, dLight / 0.46);
+            else if (dLight < 0.62) lightThemeCol = mix(f1, f2, (dLight - 0.46) / 0.16);
+            else if (dLight < 0.78) lightThemeCol = mix(f2, f3, (dLight - 0.62) / 0.16);
+            else                    lightThemeCol = mix(f3, f4, (dLight - 0.78) / 0.22);
+        } else {
+            vec3 c0 = vec3(1.0000, 1.0000, 1.0000);
+            vec3 c1 = vec3(0.5098, 0.5098, 0.5294);
+            vec3 c2 = vec3(0.3176, 0.3216, 0.3373);
+            vec3 c3 = vec3(0.1922, 0.1961, 0.2118);
+            vec3 c4 = vec3(0.1608, 0.1647, 0.1804);
+            if      (dLight < 0.520) lightThemeCol = mix(c0, c1, dLight / 0.520);
+            else if (dLight < 0.614) lightThemeCol = mix(c1, c2, (dLight - 0.520) / 0.094);
+            else if (dLight < 0.732) lightThemeCol = mix(c2, c3, (dLight - 0.614) / 0.118);
+            else if (dLight < 0.859) lightThemeCol = mix(c3, c4, (dLight - 0.732) / 0.127);
+            else                     lightThemeCol = c4;
+        }
+
+        if (darkMode < 0.001) return lightThemeCol;
+
+        float dNight = clamp(length(p - vec2(1150.0, 465.0)) / (isFav ? 650.0 : 610.0), 0.0, 1.0);
+        vec3 n0 = vec3(1.0000, 1.0000, 1.0000);
+        vec3 n1 = vec3(0.8314, 0.8471, 0.8863);
+        vec3 n2 = vec3(0.7020, 0.7255, 0.7765);
+        vec3 n3 = vec3(0.5961, 0.6275, 0.6863);
+        vec3 n4 = vec3(0.5255, 0.5569, 0.6196);
+        vec3 nightCol;
+        if      (dNight < 0.48) nightCol = mix(n0, n1, dNight / 0.48);
+        else if (dNight < 0.65) nightCol = mix(n1, n2, (dNight - 0.48) / 0.17);
+        else if (dNight < 0.82) nightCol = mix(n2, n3, (dNight - 0.65) / 0.17);
+        else                    nightCol = mix(n3, n4, (dNight - 0.82) / 0.18);
+        return mix(lightThemeCol, nightCol, clamp(darkMode, 0.0, 1.0));
+    }
+
+    vec3 shadeNeedle(float tGrad, float redHeat, bool isFav, float darkMode) {
+        vec3 c0 = isFav ? vec3(0.0549, 0.0549, 0.0627) : vec3(0.0745, 0.0745, 0.0784);
+        vec3 c1 = isFav ? vec3(0.0902, 0.0941, 0.1098) : vec3(0.1020, 0.1020, 0.1176);
+        vec3 c2 = isFav ? vec3(0.1176, 0.1255, 0.1490) : vec3(0.1451, 0.1490, 0.1647);
+        vec3 c3 = isFav ? vec3(0.1451, 0.1529, 0.1804) : vec3(0.1686, 0.1725, 0.1922);
+        vec3 c4 = isFav ? vec3(0.1216, 0.1255, 0.1490) : vec3(0.1490, 0.1490, 0.1686);
+
+        vec3 lightBase;
+        if      (tGrad < 0.25) lightBase = mix(c0, c1, tGrad * 4.0);
+        else if (tGrad < 0.50) lightBase = mix(c1, c2, (tGrad - 0.25) * 4.0);
+        else if (tGrad < 0.75) lightBase = mix(c2, c3, (tGrad - 0.50) * 4.0);
+        else                   lightBase = mix(c3, c4, (tGrad - 0.75) * 4.0);
+
+        vec3 n0 = vec3(0.7412, 0.7686, 0.8196);
+        vec3 n1 = vec3(0.8118, 0.8353, 0.8824);
+        vec3 n2 = vec3(0.8863, 0.9059, 0.9412);
+        vec3 n3 = vec3(0.9333, 0.9490, 0.9725);
+        vec3 nightBase;
+        if      (tGrad < 0.35) nightBase = mix(n0, n1, tGrad / 0.35);
+        else if (tGrad < 0.72) nightBase = mix(n1, n2, (tGrad - 0.35) / 0.37);
+        else                   nightBase = mix(n2, n3, (tGrad - 0.72) / 0.28);
+
+        vec3 base = mix(lightBase, nightBase, clamp(darkMode, 0.0, 1.0));
+        float tipGlint = smoothstep(0.55, 1.0, tGrad) * redHeat * 0.24;
+        vec3 glintCol  = mix(vec3(0.72, 0.12, 0.05), vec3(1.0, 0.62, 0.52), clamp(darkMode, 0.0, 1.0));
+        return mix(base, glintCol, tipGlint);
+    }
+
+    vec4 blendOver(vec4 dstPremul, vec3 srcRgb, float srcAlpha) {
+        return vec4(
+            srcRgb * srcAlpha + dstPremul.rgb * (1.0 - srcAlpha),
+            srcAlpha + dstPremul.a * (1.0 - srcAlpha)
+        );
+    }
+
+    void main() {
+        float spd = (u_speed > 0.0) ? u_speed : 1.0;
+        float tSim = u_time * spd;
+        float scale  = min(u_resolution.x, u_resolution.y) / 1024.0;
+        vec2  offset = (u_resolution - vec2(1024.0) * scale) * 0.5;
+        vec2  p      = (gl_FragCoord.xy - offset) / max(scale, 1e-5);
+        p.y = 1024.0 - p.y;
+
+        float aa = 0.75 / max(scale, 1e-4);
+        bool isFav = (u_variant > 0.5);
+
+        float needleRotRad, shimmerX, sparkGlow, greenStart, redHeat;
+        getBoostKinematics(tSim, u_progress, u_animate, needleRotRad, shimmerX, sparkGlow, greenStart, redHeat);
+
+        vec2  piv = isFav ? vec2(512.0, 548.0) : vec2(512.5, 551.5);
+        float cs  = cos(-needleRotRad);
+        float sn  = sin(-needleRotRad);
+        vec2  rp  = vec2(
+            (p.x - piv.x) * cs - (p.y - piv.y) * sn,
+            (p.x - piv.x) * sn + (p.y - piv.y) * cs
+        ) + piv;
+
+        float thPiv = atan(p.y - piv.y, p.x - piv.x);
+        thPiv = (thPiv > 1.8) ? (thPiv - TAU) : thPiv;
+        float thNeedle = (isFav ? -0.679806 : -0.68940) + needleRotRad;
+
+        float dRing = isFav ? sdFaviconDialRing(p) : sdHiResDialRing(p);
+        float dCutOrange = isFav
+            ? (0.500421 * rp.x + 0.865782 * rp.y - 590.141)
+            : ((rp.y + 0.641593 * rp.x - 800.180) / 1.18915);
+        float dCutDark = isFav
+            ? (-0.741650 * rp.x - 0.670787 * rp.y + 887.839)
+            : ((-1.279080 * rp.x + 1365.525 - rp.y) / 1.62359);
+
+        float dOrange = (thPiv <= thNeedle + 0.22)
+            ? max(dRing, (thPiv > thNeedle - 0.75) ? dCutOrange : -1000.0)
+            : 1000.0;
+
+        float dDark = (thPiv >= thNeedle - 0.22)
+            ? max(dRing, (thPiv < thNeedle + 0.75) ? dCutDark : -1000.0)
+            : 1000.0;
+
+        float needleT;
+        float dNeedle = isFav ? sdFaviconNeedleLocal(rp, needleT) : sdHiResNeedleLocal(rp, needleT);
+
+        vec3 bgRgb = mix(vec3(1.0), vec3(0.0627, 0.0784, 0.1137), clamp(u_dark_mode, 0.0, 1.0));
+        vec4 outPremul = vec4(bgRgb * u_bg_alpha, u_bg_alpha);
+
+        float aDark = 1.0 - smoothstep(-aa, aa, dDark);
+        if (aDark > 0.0) outPremul = blendOver(outPremul, shadeDark(p, isFav, u_dark_mode), aDark);
+
+        float aOrange = 1.0 - smoothstep(-aa, aa, dOrange);
+        if (aOrange > 0.0) outPremul = blendOver(outPremul, shadeOrange(p, dCutOrange, shimmerX, sparkGlow, greenStart, redHeat, tSim, isFav), aOrange);
+
+        float aNeedle = 1.0 - smoothstep(-aa, aa, dNeedle);
+        if (aNeedle > 0.0) outPremul = blendOver(outPremul, shadeNeedle(needleT, redHeat, isFav, u_dark_mode), aNeedle);
+
+        fragColor = outPremul;
+    }`;
+
+    const canvas = document.getElementById("glCanvas");
+    const gl = canvas.getContext("webgl2", {
+      antialias: false,
+      alpha: true,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: true
+    });
+
+    function compileShader(gl, type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(sh));
+      }
+      return sh;
+    }
+
+    const prog = gl.createProgram();
+    gl.attachShader(prog, compileShader(gl, gl.VERTEX_SHADER, vsSource));
+    gl.attachShader(prog, compileShader(gl, gl.FRAGMENT_SHADER, fsSource));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+    const posLoc = gl.getAttribLocation(prog, "a_pos");
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes      = gl.getUniformLocation(prog, "u_resolution");
+    const uTime     = gl.getUniformLocation(prog, "u_time");
+    const uProg     = gl.getUniformLocation(prog, "u_progress");
+    const uAnim     = gl.getUniformLocation(prog, "u_animate");
+    const uSpeed    = gl.getUniformLocation(prog, "u_speed");
+    const uBgAlpha  = gl.getUniformLocation(prog, "u_bg_alpha");
+    const uVariant  = gl.getUniformLocation(prog, "u_variant");
+    const uDarkMode = gl.getUniformLocation(prog, "u_dark_mode");
+
+    const toggleAnim        = document.getElementById("toggleAnim");
+    const progressSlider    = document.getElementById("progressSlider");
+    const progressVal       = document.getElementById("progressVal");
+    const speedSelect       = document.getElementById("speedSelect");
+    const bgSelect          = document.getElementById("bgSelect");
+    const triggerBoost      = document.getElementById("triggerBoost");
+    const snapRef           = document.getElementById("snapRef");
+    const copyGlslBtn       = document.getElementById("copyGlslBtn");
+    const shaderViewport    = document.getElementById("shaderViewport");
+    const svgViewport       = document.getElementById("svgViewport");
+    const standaloneVps     = document.querySelectorAll(".standalone-vp");
+    const boostSvgHiRes     = document.getElementById("boostSvgHiRes");
+    const boostSvgFav       = document.getElementById("boostSvgFav");
+    const shaderPanelTitle  = document.getElementById("shaderPanelTitle");
+    const shaderPanelBadge  = document.getElementById("shaderPanelBadge");
+    const svgPanelTitle     = document.getElementById("svgPanelTitle");
+    const svgPanelBadge     = document.getElementById("svgPanelBadge");
+    const openActiveSvgLink = document.getElementById("openActiveSvgLink");
+    const dlActiveSvgLink   = document.getElementById("dlActiveSvgLink");
+
+    // High-Res DOM elements
+    const svgHiResTrack  = document.getElementById("svgHiResTrack");
+    const svgHiResNeedle = document.getElementById("svgHiResNeedle");
+    const svgNeedleRotor = document.getElementById("svgNeedleRotor");
+    const svgWedgeDark   = document.getElementById("svgWedgeDark");
+    const svgWedgeOrange = document.getElementById("svgWedgeOrange");
+    const svgDarkSpine   = document.getElementById("svgDarkSpine");
+    const svgOrangeSpine = document.getElementById("svgOrangeSpine");
+    const svgGreenStart  = document.getElementById("svgGreenStart");
+    const svgRedHeat     = document.getElementById("svgRedHeat");
+    const svgShimmer     = document.getElementById("svgShimmer");
+
+    // Favicon Bold DOM elements
+    const svgFavTrack      = document.getElementById("svgFavTrack");
+    const svgFavNeedle     = document.getElementById("svgFavNeedle");
+    const favNeedleRotorEl = document.getElementById("favNeedleRotorEl");
+    const favWedgeDarkEl   = document.getElementById("favWedgeDarkEl");
+    const favWedgeOrangeEl = document.getElementById("favWedgeOrangeEl");
+    const favDarkSpineEl   = document.getElementById("favDarkSpineEl");
+    const favOrangeSpineEl = document.getElementById("favOrangeSpineEl");
+    const favGreenStartEl  = document.getElementById("favGreenStartEl");
+    const favRedHeatEl     = document.getElementById("favRedHeatEl");
+    const favShimmerEl     = document.getElementById("favShimmerEl");
+
+    let activeVariant = 0;
+    let exactRefMode  = false;
+    const osDarkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : { matches: false };
+
+    function isDarkThemeActive() {
+      const m = bgSelect.value;
+      if (m === "dark") return true;
+      if (m === "auto") return !!osDarkQuery.matches;
+      return false;
+    }
+
+    function applyThemeAndBackdrop() {
+      const m = bgSelect.value;
+      const dark = isDarkThemeActive();
+      const suffix = m === "checker" ? " bg-checker" : dark ? " bg-dark" : "";
+      shaderViewport.className = "viewport" + suffix;
+      svgViewport.className    = "viewport" + suffix;
+      // Standalone <img src="...svg"> viewports follow desktop prefers-color-scheme naturally when in Auto!
+      const standaloneSuffix = m === "checker" ? " bg-checker" : (osDarkQuery.matches && m !== "white") || m === "dark" ? " bg-dark" : "";
+      standaloneVps.forEach((vp) => { vp.className = "viewport standalone-vp" + standaloneSuffix; });
+
+      svgHiResTrack.setAttribute("fill", dark ? "url(#darkGradNight)" : "url(#darkGrad)");
+      svgHiResNeedle.setAttribute("fill", dark ? "url(#needleGradNight)" : "url(#needleGrad)");
+      svgFavTrack.setAttribute("fill", dark ? "url(#favDarkGradNightSync)" : "url(#favDarkGradSync)");
+      svgFavNeedle.setAttribute("fill", dark ? "url(#favNeedleGradNightSync)" : "url(#favNeedleGradSync)");
+    }
+
+    if (osDarkQuery.addEventListener) {
+      osDarkQuery.addEventListener("change", applyThemeAndBackdrop);
+    }
+    bgSelect.addEventListener("change", applyThemeAndBackdrop);
+
+    function setOpticalVariant(v) {
+      activeVariant = v ? 1 : 0;
+      document.querySelectorAll("#variantSwitch .seg-btn").forEach((b) => {
+        b.classList.toggle("active", parseInt(b.dataset.variant, 10) === activeVariant);
+      });
+      const isFav = activeVariant === 1;
+      boostSvgHiRes.style.display = isFav ? "none" : "block";
+      boostSvgFav.style.display   = isFav ? "block" : "none";
+      shaderPanelTitle.textContent = isFav
+        ? "WebGL2 Shader — Favicon Bold (u_variant = 1)"
+        : "WebGL2 Shader — High-Res (u_variant = 0)";
+      shaderPanelBadge.textContent = isFav
+        ? "178px Bold Ring • 70px Gap"
+        : "104.5px Ring • Exact SDF";
+      svgPanelTitle.textContent = isFav
+        ? "Pure Vector SVG — Favicon Bold"
+        : "Pure Vector SVG — High-Res";
+      svgPanelBadge.textContent = isFav
+        ? "91% Fill • Theme-Aware"
+        : "0 Bitmaps • Theme-Aware";
+      const targetSvg = isFav ? "boost-ci-favicon-anim.svg" : "boost-ci.svg";
+      openActiveSvgLink.href = targetSvg;
+      dlActiveSvgLink.href   = targetSvg;
+      dlActiveSvgLink.setAttribute("download", targetSvg);
+    }
+
+    document.querySelectorAll("#variantSwitch .seg-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setOpticalVariant(parseInt(btn.dataset.variant, 10)));
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("variant") === "favicon" || params.get("variant") === "1") {
+      setOpticalVariant(1);
+    }
+    if (params.get("theme") === "dark") {
+      bgSelect.value = "dark";
+    } else if (params.get("theme") === "light") {
+      bgSelect.value = "white";
+    }
+    if (params.get("static") === "1") {
+      toggleAnim.checked = false;
+      progressSlider.value = "1.00";
+      exactRefMode = true;
+    } else if (params.get("phase") !== null) {
+      toggleAnim.checked = false;
+      progressSlider.value = params.get("phase");
+      progressVal.textContent = Math.round(parseFloat(progressSlider.value) * 100) + "%";
+    }
+    applyThemeAndBackdrop();
+
+    let startTime = performance.now();
+
+    triggerBoost.addEventListener("click", () => {
+      exactRefMode = false;
+      toggleAnim.checked = true;
+      startTime = performance.now();
+      document.getElementById("standaloneHiResAnim").src = "boost-ci.svg?t=" + Date.now();
+      document.getElementById("standaloneFavAnim").src   = "boost-ci-favicon-anim.svg?t=" + Date.now();
+    });
+
+    snapRef.addEventListener("click", () => {
+      exactRefMode = true;
+      toggleAnim.checked = false;
+      progressSlider.value = "1.00";
+      progressVal.textContent = "100%";
+    });
+
+    progressSlider.addEventListener("input", () => {
+      exactRefMode = false;
+      toggleAnim.checked = false;
+      progressVal.textContent = Math.round(parseFloat(progressSlider.value) * 100) + "%";
+    });
+
+    copyGlslBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(fsSource.trim());
+        copyGlslBtn.textContent = "Copied!";
+        setTimeout(() => { copyGlslBtn.textContent = "Copy GLSL"; }, 1400);
+      } catch (_) {}
+    });
+
+    const codeViewer     = document.getElementById("codeViewer");
+    const rawFileLink    = document.getElementById("rawFileLink");
+    const copyCodeTabBtn = document.getElementById("copyCodeTabBtn");
+    const tabBtns        = document.querySelectorAll(".tab-btn");
+    const codeCache      = {};
+
+    async function loadSourceTab(fileName) {
+      rawFileLink.href = fileName;
+      if (codeCache[fileName]) {
+        codeViewer.textContent = codeCache[fileName];
+        return;
+      }
+      try {
+        const res = await fetch(fileName);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const txt = await res.text();
+        codeCache[fileName] = txt;
+        codeViewer.textContent = txt;
+      } catch (_) {
+        codeViewer.textContent = fsSource.trim();
+      }
+    }
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tabBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        loadSourceTab(btn.dataset.file);
+      });
+    });
+
+    copyCodeTabBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(codeViewer.textContent);
+        copyCodeTabBtn.textContent = "Copié !";
+        setTimeout(() => { copyCodeTabBtn.textContent = "Copier le code"; }, 1400);
+      } catch (_) {}
+    });
+
+    loadSourceTab("boost-ci.frag");
+
+    const PX_PER_DEG_HIRES = (322.0 * Math.PI) / 180.0;
+    const PX_PER_DEG_FAV   = (376.0 * Math.PI) / 180.0;
+
+    function easeOutPow(u, p) {
+      return 1.0 - Math.pow(Math.max(1.0 - Math.min(1.0, Math.max(0.0, u)), 0.0), p);
+    }
+    function easeInOut(u) {
+      const x = Math.min(1.0, Math.max(0.0, u));
+      return x * x * (3.0 - 2.0 * x);
+    }
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+    function smoothstepJS(e0, e1, x) {
+      const t = Math.min(1.0, Math.max(0.0, (x - e0) / (e1 - e0)));
+      return t * t * (3.0 - 2.0 * t);
+    }
+
+    function evalKinematicsJS(timeSec, manualProg, autoAnim) {
+      const START_DEG = -189.0;
+      const DURATION  = 4.4;
+      if (!autoAnim) {
+        if (manualProg < 0.0) {
+          return { deg: 0.0, shimmerX: null, shimmerOp: 0, greenStart: 0, redHeat: 0 };
+        }
+        const p = Math.max(0, Math.min(1.15, manualProg));
+        const deg = (p <= 1.0) ? (START_DEG * (1.0 - p)) : ((p - 1.0) * 166.15);
+        const greenStart = 1.0 - smoothstepJS(0.20, 0.48, p);
+        const redHeat    = smoothstepJS(0.58, 0.98, p);
+        return { deg, shimmerX: null, shimmerOp: 0, greenStart, redHeat };
+      }
+
+      if (timeSec >= DURATION) {
+        return { deg: 0.0, shimmerX: null, shimmerOp: 0, greenStart: 0, redHeat: 0 };
+      }
+
+      const c = Math.max(0, Math.min(1, timeSec / DURATION));
+      let deg = START_DEG;
+      let shimmerX = null;
+      let shimmerOp = 0;
+      let greenStart = 0;
+      let redHeat = 0;
+      let tremorAmp = 0;
+
+      if (c < 0.050) {
+        const u = c / 0.050;
+        deg = lerp(-189.0, -165.0, easeOutPow(u, 2.4));
+        greenStart = 1.00; tremorAmp = 0.35;
+      } else if (c < 0.100) {
+        const u = (c - 0.050) / 0.050;
+        deg = lerp(-165.0, -182.0, easeInOut(u));
+        greenStart = 1.00; tremorAmp = 0.25;
+      } else if (c < 0.220) {
+        const u = (c - 0.100) / 0.120;
+        deg = lerp(-182.0, -104.0, easeOutPow(u, 2.1));
+        greenStart = lerp(1.00, 0.72, smoothstepJS(0.35, 1.0, u)); tremorAmp = 0.30 * u;
+      } else if (c < 0.265) {
+        const u = (c - 0.220) / 0.045;
+        deg = lerp(-104.0, -120.0, easeInOut(u));
+        greenStart = lerp(0.72, 0.55, easeInOut(u));
+      } else if (c < 0.400) {
+        const u = (c - 0.265) / 0.135;
+        deg = lerp(-120.0, -46.0, easeOutPow(u, 2.3));
+        greenStart = lerp(0.55, 0.0, smoothstepJS(0.0, 0.92, u));
+        redHeat = smoothstepJS(0.70, 1.0, u) * 0.12; tremorAmp = 0.45 * u;
+      } else if (c < 0.445) {
+        const u = (c - 0.400) / 0.045;
+        deg = lerp(-46.0, -61.0, easeInOut(u));
+        redHeat = lerp(0.12, 0.05, easeInOut(u));
+      } else if (c < 0.570) {
+        const u = (c - 0.445) / 0.125;
+        deg = lerp(-61.0, -21.0, easeOutPow(u, 2.6));
+        redHeat = lerp(0.05, 0.48, easeInOut(u)); tremorAmp = lerp(0.35, 0.85, u);
+      } else if (c < 0.615) {
+        const u = (c - 0.570) / 0.045;
+        deg = lerp(-21.0, -14.5, easeInOut(u));
+        redHeat = lerp(0.48, 0.68, easeInOut(u)); tremorAmp = 0.95;
+      } else if (c < 0.645) {
+        const u = (c - 0.615) / 0.030;
+        deg = lerp(-14.5, -17.2, easeInOut(u));
+        redHeat = lerp(0.68, 0.55, easeInOut(u)); tremorAmp = 0.80;
+      } else if (c < 0.700) {
+        const u = (c - 0.645) / 0.055;
+        deg = lerp(-17.2, -6.8, easeOutPow(u, 1.9));
+        redHeat = lerp(0.55, 0.86, easeInOut(u)); tremorAmp = 1.15;
+      } else if (c < 0.730) {
+        const u = (c - 0.700) / 0.030;
+        deg = lerp(-6.8, -9.0, easeInOut(u));
+        redHeat = lerp(0.86, 0.74, easeInOut(u)); tremorAmp = 1.00;
+      } else if (c < 0.780) {
+        const u = (c - 0.730) / 0.050;
+        deg = lerp(-9.0, 2.6, easeOutPow(u, 1.8));
+        redHeat = lerp(0.74, 1.00, easeOutPow(u, 1.6)); tremorAmp = 1.25;
+      } else if (c < 0.845) {
+        const u = (c - 0.780) / 0.065;
+        deg = 2.6 * Math.exp(-3.4 * u) * Math.cos(u * Math.PI * 3.0);
+        redHeat = 0.94 + 0.06 * Math.sin(u * Math.PI * 3.0);
+        tremorAmp = lerp(0.80, 0.18, u);
+        if (u > 0.60) {
+          shimmerX = ((u - 0.60) / 0.40) * 360;
+          shimmerOp = Math.min(1, (u - 0.60) * 2.6);
+        }
+      } else {
+        const u = (c - 0.845) / 0.155;
+        deg = 0.0;
+        tremorAmp = 0.15 * Math.max(0, 1.0 - u * 1.8);
+        redHeat   = 1.0 - smoothstepJS(0.04, 0.62, u);
+        if (u < 0.94) {
+          const t = Math.min(1, u / 0.88);
+          shimmerX = 360 + t * 1040;
+          shimmerOp = u < 0.88 ? (1.0 - Math.max(0, (u - 0.65) / 0.23)) : 0;
+        }
+      }
+
+      const vib = (Math.sin(timeSec * 148.0) * 0.65 + Math.sin(timeSec * 233.0 + 1.3) * 0.35) * tremorAmp;
+      return { deg: deg + vib, shimmerX, shimmerOp, greenStart, redHeat };
+    }
+
+    function syncHiDPI() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = shaderViewport.getBoundingClientRect();
+      const target = Math.max(512, Math.round(rect.width * dpr));
+      if (canvas.width !== target || canvas.height !== target) {
+        canvas.width = target;
+        canvas.height = target;
+      }
+    }
+    window.addEventListener("resize", syncHiDPI);
+    syncHiDPI();
+
+    function render(now) {
+      const spd = parseFloat(speedSelect.value) || 1.0;
+      const t = (now - startTime) * 0.001;
+      const auto = toggleAnim.checked;
+      const manual = (!auto && exactRefMode) ? -1.0 : parseFloat(progressSlider.value);
+      const dark = isDarkThemeActive();
+      const bgAlpha = bgSelect.value === "checker" ? 0.0 : 1.0;
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, t);
+      gl.uniform1f(uProg, manual);
+      gl.uniform1f(uAnim, auto ? 1.0 : 0.0);
+      gl.uniform1f(uSpeed, spd);
+      gl.uniform1f(uBgAlpha, bgAlpha);
+      gl.uniform1f(uVariant, activeVariant);
+      gl.uniform1f(uDarkMode, dark ? 1.0 : 0.0);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      const st = evalKinematicsJS(t * spd, manual, auto);
+      const rotStr   = `rotate(${st.deg.toFixed(3)})`;
+      const greenStr = Math.max(0, Math.min(1, st.greenStart || 0)).toFixed(3);
+      const heatStr  = Math.max(0, Math.min(1, st.redHeat || 0)).toFixed(3);
+
+      if (activeVariant === 0) {
+        svgNeedleRotor.setAttribute("transform", rotStr);
+        svgWedgeDark.setAttribute("transform", rotStr);
+        svgWedgeOrange.setAttribute("transform", rotStr);
+        const dashOff = Math.max(0, Math.min(1404.99, (54.50 - st.deg) * PX_PER_DEG_HIRES)).toFixed(2);
+        svgDarkSpine.setAttribute("stroke-dashoffset", dashOff);
+        svgOrangeSpine.setAttribute("stroke-dashoffset", dashOff);
+        svgGreenStart.setAttribute("opacity", greenStr);
+        svgRedHeat.setAttribute("opacity", heatStr);
+        if (st.shimmerOp > 0.005 && st.shimmerX !== null) {
+          svgShimmer.setAttribute("opacity", st.shimmerOp.toFixed(3));
+          svgShimmer.setAttribute("transform", `translate(${st.shimmerX.toFixed(1)} 0)`);
+        } else {
+          svgShimmer.setAttribute("opacity", "0");
+        }
+      } else {
+        favNeedleRotorEl.setAttribute("transform", rotStr);
+        favWedgeDarkEl.setAttribute("transform", rotStr);
+        favWedgeOrangeEl.setAttribute("transform", rotStr);
+        const dashOffFav = Math.max(0, Math.min(1935.92, (98.95 - st.deg) * PX_PER_DEG_FAV)).toFixed(2);
+        favDarkSpineEl.setAttribute("stroke-dashoffset", dashOffFav);
+        favOrangeSpineEl.setAttribute("stroke-dashoffset", dashOffFav);
+        favGreenStartEl.setAttribute("opacity", greenStr);
+        favRedHeatEl.setAttribute("opacity", heatStr);
+        if (st.shimmerOp > 0.005 && st.shimmerX !== null) {
+          favShimmerEl.setAttribute("opacity", st.shimmerOp.toFixed(3));
+          favShimmerEl.setAttribute("transform", `translate(${(st.shimmerX * 1.08).toFixed(1)} 0)`);
+        } else {
+          favShimmerEl.setAttribute("opacity", "0");
+        }
+      }
+
+      if (auto) {
+        const normPct = Math.max(0, Math.round(((st.deg - (-189.0)) / 189.0) * 100));
+        progressVal.textContent = normPct + "%";
+      }
+
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>

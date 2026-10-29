@@ -1,0 +1,242 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <!-- Initial Low-RPM Green-Lime Gradient (evolves cleanly into Orange, then Red under high load) -->
+    <radialGradient id="greenStartGrad" cx="430" cy="360" r="660" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B4F22C" />
+      <stop offset="28%" stop-color="#62E338" />
+      <stop offset="58%" stop-color="#2AD04E" />
+      <stop offset="85%" stop-color="#18B647" />
+      <stop offset="100%" stop-color="#10A040" />
+    </radialGradient>
+
+    <!-- Base Boost Orange-Gold Radial Gradient (final resting state) -->
+    <radialGradient id="orangeGrad" cx="620" cy="210" r="682" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FECE2A" />
+      <stop offset="14.2%" stop-color="#FEA412" />
+      <stop offset="28.3%" stop-color="#FE8B04" />
+      <stop offset="42.5%" stop-color="#FE8703" />
+      <stop offset="56.6%" stop-color="#FE8605" />
+      <stop offset="70.8%" stop-color="#FE7605" />
+      <stop offset="85.0%" stop-color="#FE5802" />
+      <stop offset="100%" stop-color="#FD4E02" />
+    </radialGradient>
+
+    <!-- High-Load Struggle Vivid Scarlet-Red Gradient (luminous red, never dark maroon) -->
+    <radialGradient id="redHeatGrad" cx="760" cy="310" r="690" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF5C26" />
+      <stop offset="24%" stop-color="#FF3814" />
+      <stop offset="54%" stop-color="#F8200C" />
+      <stop offset="80%" stop-color="#E61908" />
+      <stop offset="100%" stop-color="#D11708" />
+    </radialGradient>
+
+    <!-- Light-Theme Metallic Slate Radial Gradient -->
+    <radialGradient id="darkGrad" cx="1170" cy="465" r="580" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="52.0%" stop-color="#828287" />
+      <stop offset="61.4%" stop-color="#515256" />
+      <stop offset="73.2%" stop-color="#313236" />
+      <stop offset="85.9%" stop-color="#292A2E" />
+      <stop offset="100%" stop-color="#292A2E" />
+    </radialGradient>
+
+    <!-- Dark-Theme Light Metallic Gray Track Gradient (desktop prefers-color-scheme: dark) -->
+    <radialGradient id="darkGradNight" cx="1150" cy="465" r="610" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="48%" stop-color="#D4D8E2" />
+      <stop offset="65%" stop-color="#B3B9C6" />
+      <stop offset="82%" stop-color="#98A0AF" />
+      <stop offset="100%" stop-color="#868E9E" />
+    </radialGradient>
+
+    <!-- Light-Theme Tapered Needle Linear Gradient -->
+    <linearGradient id="needleGrad" x1="415" y1="622" x2="774" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#131314" />
+      <stop offset="25%" stop-color="#1A1A1E" />
+      <stop offset="50%" stop-color="#25262A" />
+      <stop offset="75%" stop-color="#2B2C31" />
+      <stop offset="100%" stop-color="#26262B" />
+    </linearGradient>
+
+    <!-- Dark-Theme Brushed Light-Gray Needle Gradient (desktop prefers-color-scheme: dark) -->
+    <linearGradient id="needleGradNight" x1="415" y1="622" x2="774" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#BDC4D1" />
+      <stop offset="35%" stop-color="#CFD5E1" />
+      <stop offset="72%" stop-color="#E2E7F0" />
+      <stop offset="100%" stop-color="#EEF2F8" />
+    </linearGradient>
+
+    <!-- Left-to-Right Specular Shimmer Band -->
+    <linearGradient id="shimmerGrad" x1="0" y1="0.2" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="45%" stop-color="#FFE6C2" stop-opacity="0.38" />
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.48" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+
+    <path id="fullDialRing" d="M 281.60,809.09 A 363.50,363.50 0 1 1 764.72,793.67 A 52.25,52.25 0 0 1 692.78,717.87 A 259.00,259.00 0 0 0 480.69,273.22 A 323.37,323.37 0 0 0 281.60,809.09 Z" />
+
+    <clipPath id="dialClip">
+      <use href="#fullDialRing" />
+    </clipPath>
+
+    <polygon id="gapWedge" points="626.99,398.38 823.84,271.06 839.29,293.37 686.24,488.29" />
+
+    <!-- Circular Mask Spine Centered at True Dial Pivot (512.5, 551.5), R=322, Span=250 deg (1404.99px) -->
+    <path id="dialSpine" d="M 327.81,815.27 A 322,322 0 0 1 402.37,248.92 A 322,322 0 0 1 823.53,634.84" />
+  </defs>
+
+  <style>
+    /*
+     * 4.4s Single-Shot Boost Choreography (Green -> Orange -> Vivid Red Struggle -> Orange + Highlight -> Stop):
+     *  - 0%..26.5%:  Starts fresh green-lime at idle blip and 1st gear pull
+     *  - 26.5%..44%: Warms smoothly into Boost Orange-Gold across 2nd gear
+     *  - 44%..84.5%: 3rd gear struggle heats into luminous scarlet red with limiter bounce
+     *  - 84.5%..100%: Settles to 0 deg, cools back to Boost Orange-Gold, sweeps highlight, and stops cleanly
+     */
+    @keyframes boostRotorSweep {
+      0%           { transform: rotate(-189.0deg); animation-timing-function: cubic-bezier(0.25, 0.9, 0.35, 1); }
+      5%           { transform: rotate(-165.0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.65, 1); }
+      10%          { transform: rotate(-182.0deg); animation-timing-function: cubic-bezier(0.2, 0.85, 0.35, 1); }
+      22%          { transform: rotate(-104.0deg); animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+      26.5%        { transform: rotate(-120.0deg); animation-timing-function: cubic-bezier(0.18, 0.82, 0.32, 1); }
+      40%          { transform: rotate(-46.0deg);  animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+      44.5%        { transform: rotate(-61.0deg);  animation-timing-function: cubic-bezier(0.15, 0.75, 0.35, 1); }
+      57%          { transform: rotate(-21.0deg);  animation-timing-function: cubic-bezier(0.35, 0.6, 0.5, 1); }
+      61.5%        { transform: rotate(-14.5deg);  animation-timing-function: ease-in-out; }
+      64.5%        { transform: rotate(-17.2deg);  animation-timing-function: cubic-bezier(0.25, 0.8, 0.4, 1); }
+      70%          { transform: rotate(-6.8deg);   animation-timing-function: ease-in-out; }
+      73%          { transform: rotate(-9.0deg);   animation-timing-function: cubic-bezier(0.2, 0.85, 0.35, 1); }
+      78%          { transform: rotate(2.6deg);    animation-timing-function: ease-in-out; }
+      80%          { transform: rotate(-0.8deg);   animation-timing-function: ease-in-out; }
+      82%          { transform: rotate(1.5deg);    animation-timing-function: ease-out; }
+      84.5%, 100%  { transform: rotate(0deg); }
+    }
+
+    @keyframes boostSpineSweep {
+      0%           { stroke-dashoffset: 1368.46; animation-timing-function: cubic-bezier(0.25, 0.9, 0.35, 1); }
+      5%           { stroke-dashoffset: 1233.58; animation-timing-function: cubic-bezier(0.45, 0, 0.65, 1); }
+      10%          { stroke-dashoffset: 1329.12; animation-timing-function: cubic-bezier(0.2, 0.85, 0.35, 1); }
+      22%          { stroke-dashoffset:  890.76; animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+      26.5%        { stroke-dashoffset:  980.68; animation-timing-function: cubic-bezier(0.18, 0.82, 0.32, 1); }
+      40%          { stroke-dashoffset:  564.81; animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+      44.5%        { stroke-dashoffset:  649.11; animation-timing-function: cubic-bezier(0.15, 0.75, 0.35, 1); }
+      57%          { stroke-dashoffset:  424.31; animation-timing-function: cubic-bezier(0.35, 0.6, 0.5, 1); }
+      61.5%        { stroke-dashoffset:  387.78; animation-timing-function: ease-in-out; }
+      64.5%        { stroke-dashoffset:  402.95; animation-timing-function: cubic-bezier(0.25, 0.8, 0.4, 1); }
+      70%          { stroke-dashoffset:  344.50; animation-timing-function: ease-in-out; }
+      73%          { stroke-dashoffset:  356.87; animation-timing-function: cubic-bezier(0.2, 0.85, 0.35, 1); }
+      78%          { stroke-dashoffset:  291.68; animation-timing-function: ease-in-out; }
+      80%          { stroke-dashoffset:  310.78; animation-timing-function: ease-in-out; }
+      82%          { stroke-dashoffset:  297.86; animation-timing-function: ease-out; }
+      84.5%, 100%  { stroke-dashoffset:  306.29; }
+    }
+
+    @keyframes boostGreenStartSweep {
+      0%, 15%      { opacity: 1.00; }
+      22%          { opacity: 0.72; }
+      26.5%        { opacity: 0.55; }
+      40%, 100%    { opacity: 0; }
+    }
+
+    @keyframes boostRedHeatSweep {
+      0%, 38%      { opacity: 0; }
+      40%          { opacity: 0.12; }
+      44.5%        { opacity: 0.05; }
+      57%          { opacity: 0.48; }
+      61.5%        { opacity: 0.68; }
+      64.5%        { opacity: 0.55; }
+      70%          { opacity: 0.86; }
+      73%          { opacity: 0.74; }
+      78%          { opacity: 1.00; }
+      80%          { opacity: 0.90; }
+      82%, 85%     { opacity: 1.00; }
+      94%, 100%    { opacity: 0; }
+    }
+
+    @keyframes boostShimmerSweep {
+      0%, 82%      { transform: translateX(0px);    opacity: 0; }
+      86%          { opacity: 1; }
+      96%          { transform: translateX(1320px); opacity: 1; }
+      99%, 100%    { transform: translateX(1420px); opacity: 0; }
+    }
+
+    .boost-rotor {
+      animation: boostRotorSweep 4.4s forwards;
+      will-change: transform;
+    }
+    .boost-spine {
+      animation: boostSpineSweep 4.4s forwards;
+    }
+    .boost-greenstart {
+      animation: boostGreenStartSweep 4.4s ease-in-out forwards;
+      will-change: opacity;
+    }
+    .boost-redheat {
+      animation: boostRedHeatSweep 4.4s ease-in-out forwards;
+      will-change: opacity;
+    }
+    .boost-shimmer {
+      animation: boostShimmerSweep 4.4s ease-in-out forwards;
+      will-change: transform, opacity;
+    }
+
+    .dial-track  { fill: url(#darkGrad); }
+    .dial-needle { fill: url(#needleGrad); }
+    @media (prefers-color-scheme: dark) {
+      .dial-track  { fill: url(#darkGradNight); }
+      .dial-needle { fill: url(#needleGradNight); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .boost-rotor, .boost-spine, .boost-greenstart, .boost-redheat, .boost-shimmer {
+        animation: none !important;
+      }
+      .boost-greenstart, .boost-redheat, .boost-shimmer {
+        opacity: 0 !important;
+      }
+    }
+  </style>
+
+  <!-- Mask 1: Reveals Unlit Metallic Crescent ahead (clockwise) of the sweeping needle -->
+  <mask id="darkSplitMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+    <rect width="1024" height="1024" fill="#FFFFFF" />
+    <use href="#dialSpine" class="boost-spine" fill="none" stroke="#000000" stroke-width="180" stroke-linecap="butt" stroke-dasharray="1404.99 2000" stroke-dashoffset="306.29" />
+    <g transform="translate(512.5 551.5)">
+      <g class="boost-rotor">
+        <use href="#gapWedge" transform="translate(-512.5 -551.5)" fill="#000000" />
+      </g>
+    </g>
+  </mask>
+
+  <!-- Mask 2: Reveals Ignited Boost Crescent behind (counter-clockwise of) the sweeping needle -->
+  <mask id="orangeSplitMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+    <rect width="1024" height="1024" fill="#000000" />
+    <use href="#dialSpine" class="boost-spine" fill="none" stroke="#FFFFFF" stroke-width="180" stroke-linecap="butt" stroke-dasharray="1404.99 2000" stroke-dashoffset="306.29" />
+    <g transform="translate(512.5 551.5)">
+      <g class="boost-rotor">
+        <use href="#gapWedge" transform="translate(-512.5 -551.5)" fill="#000000" />
+      </g>
+    </g>
+  </mask>
+
+  <!-- 1. Unlit / Ahead Metallic Gauge Segment (adapts to light gray in dark desktop theme) -->
+  <use class="dial-track" href="#fullDialRing" mask="url(#darkSplitMask)" />
+
+  <!-- 2. Ignited Boost Gauge Segment (Green start -> Orange-Gold -> Vivid Red struggle -> settles on Orange-Gold) -->
+  <g mask="url(#orangeSplitMask)">
+    <use href="#fullDialRing" fill="url(#orangeGrad)" />
+    <use href="#fullDialRing" class="boost-greenstart" fill="url(#greenStartGrad)" opacity="0" />
+    <use href="#fullDialRing" class="boost-redheat" fill="url(#redHeatGrad)" opacity="0" />
+    <g clip-path="url(#dialClip)">
+      <rect class="boost-shimmer" x="-360" y="120" width="320" height="720" fill="url(#shimmerGrad)" opacity="0" />
+    </g>
+  </g>
+
+  <!-- 3. Precision Curved Tapered Gauge Needle (adapts to brushed light gray in dark desktop theme) -->
+  <g transform="translate(512.5 551.5)">
+    <g class="boost-rotor">
+      <path class="dial-needle" transform="translate(-512.5 -551.5)" d="M 496.36,629.65 A 50.36,50.36 0 1 1 433.38,551.99 Q 601.65,444.12 772.31,339.19 A 1.78,1.78 0 0 1 774.54,341.94 Q 637.22,487.97 496.36,629.65 Z" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <!-- High-Contrast Optical Boost Gradient (tuned for crisp 16px-48px legibility) -->
+    <radialGradient id="favOrangeGrad" cx="615" cy="175" r="760" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD836" />
+      <stop offset="22%" stop-color="#FFA30C" />
+      <stop offset="52%" stop-color="#FE7E03" />
+      <stop offset="80%" stop-color="#FC5602" />
+      <stop offset="100%" stop-color="#EE3D00" />
+    </radialGradient>
+
+    <!-- Light-Theme Bold Metallic Slate Track Gradient -->
+    <radialGradient id="favDarkGrad" cx="1180" cy="465" r="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="46%" stop-color="#858790" />
+      <stop offset="62%" stop-color="#4A4C53" />
+      <stop offset="78%" stop-color="#27292E" />
+      <stop offset="100%" stop-color="#1E2025" />
+    </radialGradient>
+
+    <!-- Dark-Theme Light Metallic Gray Track Gradient (desktop prefers-color-scheme: dark) -->
+    <radialGradient id="favDarkGradNight" cx="1150" cy="465" r="650" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="48%" stop-color="#D5D9E3" />
+      <stop offset="70%" stop-color="#B4BAC8" />
+      <stop offset="100%" stop-color="#8A92A2" />
+    </radialGradient>
+
+    <!-- Light-Theme Deep Carbon-Slate Bold Needle Gradient -->
+    <linearGradient id="favNeedleGrad" x1="395" y1="635" x2="802" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0E0E10" />
+      <stop offset="45%" stop-color="#1A1B20" />
+      <stop offset="80%" stop-color="#25272E" />
+      <stop offset="100%" stop-color="#1F2026" />
+    </linearGradient>
+
+    <!-- Dark-Theme Brushed Light-Gray Bold Needle Gradient (desktop prefers-color-scheme: dark) -->
+    <linearGradient id="favNeedleGradNight" x1="395" y1="635" x2="802" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C0C7D4" />
+      <stop offset="45%" stop-color="#D6DCE8" />
+      <stop offset="82%" stop-color="#E6EBF4" />
+      <stop offset="100%" stop-color="#F1F4FA" />
+    </linearGradient>
+  </defs>
+
+  <style>
+    .fav-track  { fill: url(#favDarkGrad); }
+    .fav-needle { fill: url(#favNeedleGrad); }
+    @media (prefers-color-scheme: dark) {
+      .fav-track  { fill: url(#favDarkGradNight); }
+      .fav-needle { fill: url(#favNeedleGradNight); }
+    }
+  </style>
+
+  <!-- Left-to-Top Ignited Boost Arc: ~91% tight fill, 178px bold track, G1 fuller taper + R=18px micro-tip -->
+  <path d="M 178.23,854.32 A 464.00,464.00 0 0 1 835.07,198.96 L 670.61,294.01 A 286.00,286.00 0 0 0 395.67,270.73 A 402.64,402.64 0 0 0 206.93,833.12 A 18.00,18.00 0 0 1 178.23,854.32 Z" fill="url(#favOrangeGrad)" />
+  <!-- Right Unlit Metallic Track: 178px uniform concentric ring + R=89px semicircular rounded cap -->
+  <path class="fav-track" d="M 918.42,308.13 A 464.00,464.00 0 0 1 859.52,839.46 A 89.00,89.00 0 0 1 726.20,721.50 A 286.00,286.00 0 0 0 787.00,453.44 Z" />
+  <!-- Bold Optical Gauge Needle (R=82px hub, R=15px tip, 70px anti-bleed white corridor for 16x16 sharpness) -->
+  <path class="fav-needle" d="M 515.27,649.52 A 82.00,82.00 0 1 1 413.42,523.53 Q 594.66,410.68 782.91,309.96 A 15.00,15.00 0 0 1 801.54,333.01 Q 663.59,495.96 515.27,649.52 Z" />
+</svg>
